@@ -1,0 +1,49 @@
+/* Токены из Figma: коллекции «Цвета», «Размеры», «Типографика» */
+:root {
+  --color-bg: #263533;
+  --color-surface: #191919;
+  --color-surface-nested: #262626;
+  --color-surface-sunken: #0d0d0d;
+  --color-text: #f5f5f2;
+  --color-text-secondary: #8f8f8c;
+  --color-accent: #ff5a2e;
+  --color-accent-light: #ff8c6b;
+  --color-text-on-accent: #191919;
+  --color-kopitron-sleep: #737370;
+  --color-border: rgba(245, 245, 242, 0.08);
+
+  --radius-chip: 10px;
+  --radius-nested: 12px;
+  --radius-button: 14px;
+  --radius-card: 16px;
+  --radius-sheet: 20px;
+
+  --layout-screen-padding: 16px;
+  --layout-swipe-offset: 16px;
+
+  --font-mono: 'Martian Mono', ui-monospace, monospace;
+  --font-sans: 'Inter', system-ui, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html, body, #root { height: 100%; }
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+  user-select: none;
+}
+
+.mono-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}

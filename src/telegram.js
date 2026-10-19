@@ -1,0 +1,31 @@
+// Обёртка над Telegram WebApp SDK. Вне Telegram (в обычном браузере) всё тихо работает без него.
+const tg = window.Telegram?.WebApp
+
+export function initTelegram() {
+  if (!tg) return
+  tg.ready()
+  tg.expand()
+  try {
+    tg.setHeaderColor('#263533')
+    tg.setBackgroundColor('#263533')
+    tg.setBottomBarColor?.('#263533')
+    // чтобы свайп по экрану не сворачивал приложение
+    tg.disableVerticalSwipes?.()
+  } catch {}
+}
+
+// Вибрация: в Telegram через HapticFeedback, в браузере через vibrate, если есть
+export const haptic = {
+  light() {
+    if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('light')
+    else navigator.vibrate?.(8)
+  },
+  tick() {
+    if (tg?.HapticFeedback) tg.HapticFeedback.selectionChanged()
+    else navigator.vibrate?.(4)
+  },
+  success() {
+    if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success')
+    else navigator.vibrate?.([12, 40, 20])
+  },
+}
