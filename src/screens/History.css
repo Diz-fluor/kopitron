@@ -1,0 +1,39 @@
+/* сегменты: «пилюли» в истории и переключатель периода на экране монеты */
+.segments { display: flex; gap: 8px; }
+.segments button {
+  border: 0;
+  border-radius: 999px;
+  padding: 8px 14px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 140ms ease, color 140ms ease;
+}
+.segments button.is-on { background: var(--color-text); color: var(--color-surface); }
+.segments--track {
+  padding: 4px;
+  gap: 0;
+  border-radius: var(--radius-nested);
+  background: var(--color-surface-nested);
+}
+.segments--track button { flex: 1; border-radius: 9px; background: none; padding: 9px 0; font-size: 15px; font-weight: 500; }
+.segments--track button.is-on { background: var(--color-text); color: var(--color-surface); }
+
+.month { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; }
+.month__head { display: flex; justify-content: space-between; padding: 0 4px; font-size: 15px; }
+.row__title--sm { font-size: 15px; }
+.row.is-skipped { opacity: 0.45; }
+.skipped { font-family: var(--font-sans); font-weight: 600; font-size: 14px; }
+
+.details__amount { margin: 0; font-size: 30px; font-weight: 600; }
+.details__sub { margin: 2px 0 6px; font-size: 14px; }
+.kv { margin: 0; display: flex; flex-direction: column; }
+.kv div { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; font-size: 15px; }
+.kv dt { color: var(--color-text-secondary); }
+.kv dd { margin: 0; display: flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-weight: 500; font-size: 14px; }
+.kv dd.kv__sans { font-family: var(--font-sans); font-weight: 600; font-size: 15px; }
+.kv__wallet { width: 18px; height: 18px; border-radius: 5px; background: #2f86f6; }
+.note { margin: 14px 0 0; font-size: 13px; line-height: 1.35; }

@@ -11,7 +11,7 @@ const INSET = 4
 const DOT_STEP = 10
 const NEAR_GOAL = 0.85
 
-export default function Swipe({ label = 'Сдвинь, чтобы положить $10', doneLabel = 'Готово, $10 → Bitcoin', onDone }) {
+export default function Swipe({ label = 'Сдвинь, чтобы положить $10', doneLabel = 'Готово, $10 → Bitcoin', onDone, disabled }) {
   const trackRef = useRef(null)
   const startRef = useRef(0)
   const lastDotsRef = useRef(0)
@@ -49,7 +49,8 @@ export default function Swipe({ label = 'Сдвинь, чтобы положит
     setDragging(false)
     setX(max)
     haptic.success()
-    onDone?.()
+    // показываем «Готово» и подмигивание, потом передаём дальше (подпись в кошельке)
+    setTimeout(() => onDone?.(), 700)
     // через ~1,5 с Kopitron засыпает обратно
     setTimeout(() => {
       setDone(false)
@@ -58,7 +59,7 @@ export default function Swipe({ label = 'Сдвинь, чтобы положит
   }, [max, onDone])
 
   const onPointerDown = (e) => {
-    if (done) return
+    if (done || disabled) return
     e.currentTarget.setPointerCapture(e.pointerId)
     startRef.current = e.clientX - x
     lastDotsRef.current = 0
@@ -88,7 +89,7 @@ export default function Swipe({ label = 'Сдвинь, чтобы положит
   const trailCount = Math.max(0, Math.floor((x - 4) / DOT_STEP))
 
   return (
-    <div ref={trackRef} className={`swipe swipe--${state}`}>
+    <div ref={trackRef} className={`swipe swipe--${disabled ? 'disabled' : state}`}>
       <div className="swipe__progress" style={{ width: done ? '100%' : state === 'rest' ? 0 : x + INSET + KNOB / 2 }} />
 
       <div className="swipe__trail" aria-hidden="true">

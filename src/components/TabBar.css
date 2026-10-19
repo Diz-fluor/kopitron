@@ -1,0 +1,22 @@
+.tabbar {
+  flex-shrink: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  padding: 8px 0 calc(8px + var(--bottom-inset));
+  background: #131313;
+}
+.tabbar__item {
+  border: 0;
+  background: none;
+  padding: 4px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 500;
+  color: #9e9e9c;
+  cursor: pointer;
+}
+.tabbar__item.is-on { color: var(--color-text); }

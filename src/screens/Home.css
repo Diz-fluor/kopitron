@@ -1,0 +1,39 @@
+.home__total {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+  padding: 4px 0 6px;
+}
+.home__sum { font-size: 43px; line-height: 1; letter-spacing: -0.02em; }
+.home__change { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 11px; font-weight: 500; }
+.home__change .chip { font-size: 13px; padding: 4px 10px; }
+
+.next { display: flex; flex-direction: column; gap: 14px; }
+.next__head { display: flex; justify-content: space-between; align-items: center; }
+.next__body { display: flex; align-items: center; gap: 18px; }
+.next__body svg { width: 128px; height: auto; }
+.next__info { display: flex; flex-direction: column; gap: 4px; }
+.next__info strong { font-size: 17px; font-weight: 600; }
+.next__date { font-size: 13px; font-weight: 600; }
+
+.goal {
+  width: 100%;
+  border: 0;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  cursor: pointer;
+}
+.goal__head { display: flex; justify-content: space-between; font-size: 15px; font-weight: 600; }
+.goal__eta { font-size: 12px; }
+
+.home__nowallet { font-size: 16px; font-weight: 600; }
+.home__nowallet-sub { margin: 6px 0 0; font-size: 13px; }
+
+@media (max-height: 700px) {
+  .home__sum { font-size: 36px; }
+  .next__body svg { width: 104px; }
+}

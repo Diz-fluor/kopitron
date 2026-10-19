@@ -149,6 +149,47 @@ const ROWS = 9
 // условная цена по столбцам: рост, пик, просадка, восстановление (строка 0 — верх)
 const PRICE = [6, 6, 5, 5, 4, 4, 3, 2, 2, 3, 4, 5, 6, 7, 7, 6, 6, 5, 4, 4, 3, 3, 2, 2, 1, 0]
 
+export function DcaChart() {
+  return (
+  <section className="card chart">
+      <div className="chart__top">
+        <span>$10 каждую неделю, 3 года</span>
+        <span className="chart__hint">пример</span>
+      </div>
+      <div className="chart__grid" style={{ gridTemplateColumns: `repeat(${COLS}, 1fr)` }}>
+        {Array.from({ length: ROWS }).flatMap((_, r) =>
+          Array.from({ length: COLS }, (_, c) => {
+            const lit = PRICE[c] === r
+            const buy = lit && c % 3 === 1
+            return (
+              <i
+                key={`${r}-${c}`}
+                className={lit ? (buy ? 'is-buy' : 'is-price') : ''}
+                style={lit ? { animationDelay: `${120 + c * 45}ms` } : undefined}
+              />
+            )
+          }),
+        )}
+      </div>
+      <div className="chart__years">
+        <span>2024</span><span>2025</span><span>2026</span><span>2027</span>
+      </div>
+      <div className="chart__compare">
+        <div className="compare">
+          <span className="compare__title">Купил всё на пике</span>
+          <strong>$69k</strong>
+          <span className="compare__sub">цена за 1 BTC</span>
+        </div>
+        <div className="compare compare--accent">
+          <span className="compare__title">Покупал понемногу</span>
+          <strong>$48k</strong>
+          <span className="compare__sub">средняя цена</span>
+        </div>
+      </div>
+    </section>
+  )
+}
+
 function Distance({ go }) {
   return (
     <>
@@ -156,42 +197,7 @@ function Distance({ go }) {
         Kopitron не угадывает курс. Он покупает понемногу, и средняя цена выходит ровнее
       </Head>
 
-      <section className="card chart">
-        <div className="chart__top">
-          <span>$10 каждую неделю, 3 года</span>
-          <span className="chart__hint">пример</span>
-        </div>
-        <div className="chart__grid" style={{ gridTemplateColumns: `repeat(${COLS}, 1fr)` }}>
-          {Array.from({ length: ROWS }).flatMap((_, r) =>
-            Array.from({ length: COLS }, (_, c) => {
-              const lit = PRICE[c] === r
-              const buy = lit && c % 3 === 1
-              return (
-                <i
-                  key={`${r}-${c}`}
-                  className={lit ? (buy ? 'is-buy' : 'is-price') : ''}
-                  style={lit ? { animationDelay: `${120 + c * 45}ms` } : undefined}
-                />
-              )
-            }),
-          )}
-        </div>
-        <div className="chart__years">
-          <span>2024</span><span>2025</span><span>2026</span><span>2027</span>
-        </div>
-        <div className="chart__compare">
-          <div className="compare">
-            <span className="compare__title">Купил всё на пике</span>
-            <strong>$69k</strong>
-            <span className="compare__sub">цена за 1 BTC</span>
-          </div>
-          <div className="compare compare--accent">
-            <span className="compare__title">Покупал понемногу</span>
-            <strong>$48k</strong>
-            <span className="compare__sub">средняя цена</span>
-          </div>
-        </div>
-      </section>
+      <DcaChart />
 
       <ul className="bullets">
         <li>Не нужно разбираться в графиках, достаточно не забывать</li>
@@ -209,7 +215,7 @@ function Distance({ go }) {
 
 /* 03 План */
 
-function Diode({ on }) {
+export function Diode({ on }) {
   return <span className={`diode ${on ? 'is-on' : ''}`} aria-hidden="true" />
 }
 
@@ -359,10 +365,10 @@ function CustomPlan({ plan, setPlan, back }) {
 
 /* 04 Кошелёк */
 
-const SHIELD = '1,0 2,0 3,0 4,0 5,0 6,0 7,0 0,1 8,1 0,2 6,2 8,2 0,3 5,3 8,3 0,4 2,4 4,4 8,4 0,5 3,5 8,5 1,6 7,6 2,7 6,7 3,8 4,8 5,8'
+export const SHIELD = '1,0 2,0 3,0 4,0 5,0 6,0 7,0 0,1 8,1 0,2 6,2 8,2 0,3 5,3 8,3 0,4 2,4 4,4 8,4 0,5 3,5 8,5 1,6 7,6 2,7 6,7 3,8 4,8 5,8'
 
 // сетка 9×9: точка 2,8, шаг 3,4, поле 31×31 — как иконка в Figma
-function DotIcon({ cells, size = 31, color = 'var(--color-accent)' }) {
+export function DotIcon({ cells, size = 31, color = 'var(--color-accent)' }) {
   return (
     <svg width={size} height={size} viewBox="0 0 31 31" aria-hidden="true" style={{ display: 'block', flexShrink: 0 }}>
       {cells.split(' ').map((p) => {
@@ -373,7 +379,7 @@ function DotIcon({ cells, size = 31, color = 'var(--color-accent)' }) {
   )
 }
 
-function WalletGlyph({ kind }) {
+export function WalletGlyph({ kind }) {
   // нейтральные значки; настоящие логотипы кошельков добавим отдельно
   return (
     <span className={`wallet__icon wallet__icon--${kind}`} aria-hidden="true">

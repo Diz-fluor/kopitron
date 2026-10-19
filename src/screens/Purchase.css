@@ -1,0 +1,100 @@
+.scr__body--center { justify-content: center; gap: 28px; }
+
+.hero-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  animation: pop-in 420ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@keyframes pop-in { from { opacity: 0; transform: scale(0.94); } }
+.hero-state__title {
+  margin: 36px 0 0;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 26px;
+}
+.hero-state__sub { margin: 14px 0 0; font-size: 16px; font-weight: 600; }
+
+.progress { display: flex; flex-direction: column; gap: 10px; }
+.progress__head { display: flex; justify-content: space-between; font-size: 15px; font-weight: 600; }
+.progress__note { font-size: 13px; }
+.segbar i.is-new { background: var(--color-accent); animation: led-blink 900ms steps(1) infinite; }
+@keyframes led-blink { 50% { opacity: 0.35; } }
+.segbar--accent i { background: #2b2b2b; }
+.segbar--accent i.is-on { background: var(--color-accent); }
+
+.note-title { font-size: 15px; font-weight: 600; }
+.note-text { margin: 8px 0 0; font-size: 13px; line-height: 1.35; }
+
+/* поставим цель */
+.goal-input {
+  margin-top: 36px;
+  display: flex;
+  align-items: baseline;
+  border-bottom: 1.5px solid var(--color-accent);
+  padding-bottom: 10px;
+}
+.goal-input__sign { font-size: 56px; font-weight: 500; }
+.goal-input input {
+  width: 100%;
+  border: 0;
+  outline: 0;
+  background: none;
+  color: var(--color-text);
+  font-size: 56px;
+  font-weight: 500;
+  padding: 0;
+}
+.goal-chips { margin-top: 20px; display: flex; gap: 8px; flex-wrap: wrap; }
+.chip--btn {
+  border: 0;
+  color: var(--color-text);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: background 140ms ease, color 140ms ease;
+}
+.chip--btn.is-on { background: var(--color-accent); color: var(--color-text-on-accent); }
+.goal-hint { margin: 16px 0 0; font-size: 13px; line-height: 1.35; }
+
+/* шторка кошелька: её рисует кошелёк, поэтому цвета как у Wallet, не наши */
+.sheet--wallet { background: #212327; }
+.wallet-sheet__title { margin: 4px 0 0; text-align: center; font-size: 20px; font-weight: 600; }
+.wallet-sheet__from { margin: 14px 0 18px; text-align: center; font-size: 13px; color: #9a9da3; }
+.wallet-sheet__table { margin: 0; padding: 4px 16px; border-radius: 12px; background: #2c2f34; }
+.wallet-sheet__table div { display: flex; justify-content: space-between; padding: 12px 0; font-size: 15px; }
+.wallet-sheet__table dt { color: #9a9da3; }
+.wallet-sheet__table dd { margin: 0; font-family: var(--font-mono); font-weight: 500; }
+.wallet-sheet__actions { margin-top: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.wallet-btn {
+  height: 52px;
+  border: 0;
+  border-radius: 12px;
+  background: #34373d;
+  color: #fff;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.wallet-btn--primary { background: #3f8ef7; }
+
+/* не хватает средств */
+.low { text-align: center; }
+.low__face { display: flex; justify-content: center; margin: 8px 0 14px; }
+.low__title { margin: 0; font-family: var(--font-mono); font-weight: 600; font-size: 20px; }
+.low__text { margin: 12px 0 20px; }
+.low__actions { display: flex; flex-direction: column; gap: 12px; }
+.low__skip {
+  border: 0;
+  background: none;
+  padding: 8px;
+  color: var(--color-text-secondary);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}

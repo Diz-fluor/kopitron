@@ -92,3 +92,9 @@
 .swipe--middle .swipe__knob,
 .swipe--goal .swipe__knob { transition: none; cursor: grabbing; }
 .swipe--done .swipe__knob { opacity: 0; transition: opacity 120ms ease; }
+
+/* после покупки: свайп приглушён, «Следующая 28 октября» */
+.swipe--disabled { opacity: 1; }
+.swipe--disabled .swipe__knob { opacity: 0.45; cursor: default; }
+.swipe--disabled .swipe__socket { opacity: 0.45; }
+.swipe--disabled .swipe__label { color: var(--color-text-secondary); }

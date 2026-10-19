@@ -1,0 +1,52 @@
+.coin__head { display: flex; align-items: center; gap: 14px; }
+.coin__name { margin: 0; }
+.coin__value { margin: 4px 0 0; font-size: 34px; font-weight: 500; line-height: 1; }
+.coin__sub { margin: 4px 0 0; font-size: 14px; }
+.coin__plan {
+  align-self: flex-start;
+  margin: 0 0 6px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.coin__plan .muted { font-weight: 400; }
+.coin__note { margin: 14px 0 0; font-size: 13px; }
+
+.led { margin-top: 16px; }
+.led__plot { position: relative; padding-right: 58px; }
+.led__grid { display: grid; gap: 4px 0; justify-items: center; }
+.led__grid i { width: 5px; height: 5px; border-radius: 50%; background: #2e2e2c; }
+.led__grid i.is-price { background: var(--color-text); animation: led-pop 260ms ease-out both; }
+.led__grid i.is-buy { background: var(--color-accent); animation: led-pop 260ms ease-out both; }
+.led__grid i.is-tail { background: #6a2a18; }
+@keyframes led-pop { from { transform: scale(0); } }
+.led__avg {
+  position: absolute;
+  left: 0;
+  right: 58px;
+  border-top: 1px dashed rgba(245, 245, 242, 0.45);
+}
+.led__tag {
+  position: absolute;
+  right: 0;
+  padding: 2px 6px;
+  border-radius: 6px;
+  border: 1px solid rgba(245, 245, 242, 0.5);
+  background: var(--color-surface);
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 600;
+}
+.led__tag--now { top: -4px; background: var(--color-text); color: var(--color-surface); border-color: transparent; }
+.led__axis {
+  margin-top: 10px;
+  padding-right: 58px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--color-text-secondary);
+}
