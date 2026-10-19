@@ -147,7 +147,7 @@ export function Waiting({ amount = 10, onDone, progress, title = 'Покупае
 }
 
 /* 05 Успех */
-export function Success({ amount = 10, onHome, received, goal, saved }) {
+export function Success({ amount = 10, onHome, received, goal, saved, nextDate }) {
   const [emotion, setEmotion] = useState('wink')
   useEffect(() => {
     const t = setTimeout(() => setEmotion('joy'), 900)
@@ -174,7 +174,7 @@ export function Success({ amount = 10, onHome, received, goal, saved }) {
               <i key={i} className={i < lit ? 'is-on' : i === lit ? 'is-new' : ''} />
             ))}
           </div>
-          <span className="muted progress__note">Следующая покупка: пт, {NEXT_PURCHASE.after}</span>
+          <span className="muted progress__note">Следующая покупка: {nextDate ?? `пт, ${NEXT_PURCHASE.after}`}</span>
         </section>}
       </div>
       <div className="scr__foot scr__foot--bottom">

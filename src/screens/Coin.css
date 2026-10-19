@@ -50,3 +50,6 @@
   font-size: 11px;
   color: var(--color-text-secondary);
 }
+
+.led__empty { margin: 0; padding: 48px 0; text-align: center; font-size: 13px; }
+.led__legend { margin: 10px 0 0; font-size: 12px; }

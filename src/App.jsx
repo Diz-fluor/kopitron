@@ -13,7 +13,7 @@ import { usePortfolio } from './api/tonapi.js'
 import { preparePurchase, executePurchase } from './api/omniston.js'
 import { isDemoWallet } from './wallet.js'
 import { COINS } from './data/mock.js'
-import { setPlansFromOnboarding, setGoal, useGoal, getGoal, usePlans } from './data/plans.js'
+import { setPlansFromOnboarding, setGoal, useGoal, getGoal, usePlans, nextPurchase } from './data/plans.js'
 import { backButton } from './telegram.js'
 import './styles/ui.css'
 
@@ -170,6 +170,7 @@ function Main({ plan }) {
           received={real ? buy.received : undefined}
           goal={real ? goal : undefined}
           saved={real ? Math.max(0, saved - buy.usd) : undefined}
+          nextDate={real ? nextPurchase(myPlans, new Date(Date.now() + 86400000))?.date : undefined}
           onHome={() => {
             if (!firstDone) {
               setFirstDone(true)

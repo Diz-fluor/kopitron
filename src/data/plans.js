@@ -116,3 +116,19 @@ export function useGoal() {
 }
 
 export const getGoal = () => goal
+
+/* Прогноз: когда при текущих планах наберётся сумма. Без обещаний роста: считаем по сегодняшнему курсу */
+
+export const perMonthUsd = (list) =>
+  list.filter((p) => !p.paused).reduce((s, p) => s + p.amount * (p.freq === 'month' ? 1 : p.freq === '2weeks' ? 26 / 12 : 52 / 12), 0)
+
+export function etaText(left, monthly, from = new Date()) {
+  if (left <= 0) return ''
+  if (!monthly) return ''
+  const d = new Date(from)
+  d.setMonth(d.getMonth() + Math.ceil(left / monthly))
+  const month = d.toLocaleDateString('ru-RU', { month: 'long' })
+  // «к маю 2027»: дательный падеж месяца
+  const dative = { январь: 'январю', февраль: 'февралю', март: 'марту', апрель: 'апрелю', май: 'маю', июнь: 'июню', июль: 'июлю', август: 'августу', сентябрь: 'сентябрю', октябрь: 'октябрю', ноябрь: 'ноябрю', декабрь: 'декабрю' }
+  return `к ${dative[month] ?? month} ${d.getFullYear()}`
+}

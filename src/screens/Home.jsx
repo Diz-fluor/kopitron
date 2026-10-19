@@ -4,7 +4,7 @@ import CoinIcon from '../components/CoinIcon.jsx'
 import { DotNumber } from '../components/DotGrid.jsx'
 import { COINS, PORTFOLIO, NEXT_PURCHASE, GOAL, money, pct } from '../data/mock.js'
 import { usePortfolio, fmtAmount } from '../api/tonapi.js'
-import { usePlans, planShort, nextPurchase, useGoal } from '../data/plans.js'
+import { usePlans, planShort, nextPurchase, useGoal, perMonthUsd, etaText } from '../data/plans.js'
 import { isDemoWallet } from '../wallet.js'
 import './Home.css'
 
@@ -118,7 +118,7 @@ export default function Home({ nav, wallet, purchased, onSwipe, onConnect }) {
             <span className="segbar">
               {Array.from({ length: 20 }, (_, i) => <i key={i} className={i < Math.round(goalPct / 5) ? 'is-on' : ''} />)}
             </span>
-            <span className="muted goal__eta">{demo ? `≈ ${GOAL.eta}` : `Собрано ${money(Math.round(goalSaved))}`}</span>
+            <span className="muted goal__eta">{demo ? `≈ ${GOAL.eta}` : [`Собрано ${money(Math.round(goalSaved))}`, etaText(goalTarget - goalSaved, perMonthUsd(plans))].filter(Boolean).join(', ≈ ').replace('≈ цель', 'цель')}</span>
           </button>
         )}
       </div>

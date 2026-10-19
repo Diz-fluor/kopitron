@@ -5,7 +5,7 @@ import { COINS, GOAL, money } from '../data/mock.js'
 import { DAYS } from '../onboarding/plan.js'
 import { haptic } from '../telegram.js'
 import { Segments } from './History.jsx'
-import { usePlans, savePlan, deletePlan, planTitle, planWhen, DEFAULT_GOALS, useGoal } from '../data/plans.js'
+import { usePlans, savePlan, deletePlan, planTitle, planWhen, DEFAULT_GOALS, useGoal, perMonthUsd, etaText } from '../data/plans.js'
 import { usePortfolio, fmtAmount } from '../api/tonapi.js'
 import { useWallet, isDemoWallet } from '../wallet.js'
 
@@ -27,7 +27,7 @@ function useLivePlans() {
       goalValue: goal,
       saved: `${fmtAmount(have)} ${COINS[p.coin].ticker}`,
       pct: Math.min(100, Math.round((have / goal) * 100)),
-      eta: '',
+      eta: p.paused || !d[p.coin]?.price ? '' : etaText((goal - have) * (d[p.coin]?.price ?? 0), perMonthUsd([p])),
       when: planWhen(p),
     }
   })
@@ -57,6 +57,7 @@ export function Goals({ nav }) {
   const userGoal = useGoal()
   const target = demo ? GOAL.target : userGoal
   const pct = target ? Math.min(100, Math.round((total / target) * 100)) : 0
+  const eta = demo ? '' : target ? etaText(target - total, perMonthUsd(plans)) : ''
   return (
     <div className="scr scr--tab">
       <div className="scr__body">
@@ -65,7 +66,7 @@ export function Goals({ nav }) {
           <button type="button" className="card card--pad goal-total" onClick={() => nav.push('goal')}>
             <div className="goal-total__head">
               <span className="label">Общая цель</span>
-              <span className="muted">{demo ? '≈ июнь 2027' : 'Изменить ›'}</span>
+              <span className="muted">{demo ? '≈ июнь 2027' : eta ? `≈ ${eta} ›` : 'Изменить ›'}</span>
             </div>
             <div className="goal-total__row">
               <span>{money(Math.round(total))} из {money(target)}</span>

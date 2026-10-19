@@ -5,7 +5,7 @@ const API = 'https://tonapi.io/v2'
 
 // BTC и ETH в сети TON — жетоны 1:1 к оригиналу. Узнаём их по символу, чтобы не зависеть от моста
 const SYMBOLS = {
-  btc: ['TGBTC', 'BTC', 'WBTC', 'JWBTC', 'OWBTC'],
+  btc: ['TGBTC', 'BTC', 'WBTC', 'JWBTC', 'OWBTC', 'CBBTC'],
   eth: ['ETH', 'WETH', 'JWETH', 'OWETH', 'JETH'],
   usdt: ['USD₮', 'USDT', 'JUSDT'],
 }

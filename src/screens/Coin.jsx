@@ -1,8 +1,13 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import CoinIcon from '../components/CoinIcon.jsx'
 import MainButton from '../components/MainButton.jsx'
 import { Segments } from './History.jsx'
-import { COINS, PORTFOLIO, pct } from '../data/mock.js'
+import { COINS, PORTFOLIO, pct, money } from '../data/mock.js'
+import { useWallet, isDemoWallet } from '../wallet.js'
+import { usePortfolio, fmtAmount } from '../api/tonapi.js'
+import { fetchChart } from '../api/history.js'
+import { useLiveHistory } from './History.jsx'
+import { usePlans, planTitle } from '../data/plans.js'
 import './Coin.css'
 
 const PERIODS = [
@@ -66,10 +71,90 @@ function LedChart({ coin, period }) {
   )
 }
 
+const DAY = 86400000
+const SPAN = { '1m': 30 * DAY, '6m': 182 * DAY, '1y': 365 * DAY }
+const usdShort = (n) => (n >= 10000 ? `$${(n / 1000).toFixed(1).replace('.', ',')}k` : n >= 100 ? `$${Math.round(n)}` : `$${n.toFixed(2).replace('.', ',')}`)
+
+// Настоящий график: курс из TonAPI, оранжевые точки там, где были покупки
+function LiveChart({ coin, period, buys }) {
+  const [points, setPoints] = useState(null)
+  const first = buys.length ? Math.min(...buys.map((b) => b.time)) : Date.now() - 2 * 365 * DAY
+  const from = period === 'all' ? Math.min(first, Date.now() - 30 * DAY) : Date.now() - SPAN[period]
+  useEffect(() => {
+    let alive = true
+    setPoints(null)
+    fetchChart(coin, from, Date.now(), COLS).then((p) => alive && setPoints(p)).catch(() => alive && setPoints([]))
+    return () => { alive = false }
+  }, [coin, period])
+
+  if (!points) return <div className="led"><p className="muted led__empty">Загружаем курс</p></div>
+  if (points.length < 2) return <div className="led"><p className="muted led__empty">Курс сейчас недоступен</p></div>
+
+  // сводим к COLS столбцам
+  const cols = Array.from({ length: COLS }, (_, i) => points[Math.round((i / (COLS - 1)) * (points.length - 1))])
+  const prices = cols.map((p) => p[1])
+  const min = Math.min(...prices)
+  const max = Math.max(...prices)
+  const row = (v) => (max === min ? Math.floor(ROWS / 2) : Math.round(((v - min) / (max - min)) * (ROWS - 1)))
+  const t0 = cols[0][0]
+  const step = (cols[COLS - 1][0] - t0) / (COLS - 1) || 1
+  const bought = new Set(buys.filter((b) => b.time >= t0 - step / 2).map((b) => Math.min(COLS - 1, Math.round((b.time - t0) / step))))
+  const spent = buys.reduce((s, b) => s + b.usd, 0)
+  const got = buys.reduce((s, b) => s + b.amount, 0)
+  const mean = got ? spent / got : prices.reduce((a, b) => a + b, 0) / prices.length
+  const meanRow = Math.max(0, Math.min(ROWS - 1, row(mean)))
+
+  const cells = []
+  for (let r = ROWS - 1; r >= 0; r--)
+    for (let c = 0; c < COLS; c++) {
+      const v = row(prices[c])
+      const last = c === COLS - 1
+      let cls = ''
+      if (v === r) cls = bought.has(c) || last ? 'is-buy' : 'is-price'
+      else if (last && r < v) cls = 'is-tail'
+      cells.push(<i key={`${r}-${c}`} className={cls} style={cls ? { animationDelay: `${c * 25}ms` } : undefined} />)
+    }
+  const fmt = period === '1m' ? { day: 'numeric' } : period === 'all' && cols[COLS - 1][0] - t0 > 400 * DAY ? { year: 'numeric' } : { month: 'short' }
+  const labels = [0, 0.25, 0.5, 0.75, 1].map((k) => new Date(t0 + k * step * (COLS - 1)).toLocaleDateString('ru-RU', fmt).replace('.', ''))
+  return (
+    <div className="led">
+      <div className="led__plot">
+        <div className="led__grid" style={{ gridTemplateColumns: `repeat(${COLS}, 1fr)` }}>{cells}</div>
+        <span className="led__avg" style={{ bottom: `${((meanRow + 0.5) / ROWS) * 100}%` }} />
+        <span className="led__tag led__tag--now">{usdShort(prices[COLS - 1])}</span>
+        <span className="led__tag" style={{ bottom: `calc(${((meanRow + 0.5) / ROWS) * 100}% - 10px)` }}>{usdShort(mean)}</span>
+      </div>
+      <div className="led__axis">
+        {labels.map((l, i) => <span key={i}>{l}</span>)}
+      </div>
+      <p className="muted led__legend">{got ? 'Пунктир: твоя средняя цена покупки' : 'Пунктир: средний курс за период'}</p>
+    </div>
+  )
+}
+
 export default function Coin({ coin = 'btc', nav }) {
   const [period, setPeriod] = useState('6m')
-  const h = PORTFOLIO.holdings.find((x) => x.coin === coin)
+  const wallet = useWallet()
+  const demo = isDemoWallet(wallet)
+  const live = usePortfolio(wallet && !demo ? wallet : null)
+  const { items } = useLiveHistory()
+  const plan = usePlans().find((p) => p.coin === coin)
   const c = COINS[coin]
+  const buys = demo ? [] : items.filter((x) => x.coin === coin && !x.pending)
+  let h
+  if (demo) h = PORTFOLIO.holdings.find((x) => x.coin === coin)
+  else {
+    const d = live.data?.[coin]
+    const invested = buys.reduce((s, b) => s + b.usd, 0)
+    const value = d?.value ?? 0
+    h = {
+      value: Math.round(value * 100) / 100,
+      amount: fmtAmount(d?.amount ?? 0),
+      change: invested ? Math.round(((value - invested) / invested) * 1000) / 10 : Math.round((d?.change ?? 0) * 10) / 10,
+      since: invested ? 'за всё время' : 'за сутки',
+    }
+  }
+  const planText = demo ? PLANS[coin] : plan ? planTitle(plan) + (plan.paused ? ', пауза' : '') : null
 
   return (
     <div className="scr">
@@ -78,17 +163,17 @@ export default function Coin({ coin = 'btc', nav }) {
           <CoinIcon coin={coin} size={36} />
           <h1 className="title coin__name">{c.name}</h1>
         </header>
-        <p className="coin__value num">${h.value}</p>
+        <p className="coin__value num">{money(h.value)}</p>
         <p className="muted coin__sub">
-          {h.amount} {c.ticker}, {pct(h.change)} за всё время
+          {h.amount} {c.ticker}{h.value > 0 ? `, ${pct(h.change)} ${h.since ?? 'за всё время'}` : ''}
         </p>
-        <button type="button" className="coin__plan" onClick={() => nav.push('plan', { coin })}>
-          <span className="muted">План</span> <span className="accent">{PLANS[coin]} ›</span>
+        <button type="button" className="coin__plan" onClick={() => nav.push(planText ? 'plan' : 'newplan', { coin })}>
+          <span className="muted">План</span> <span className="accent">{planText ?? 'Создать'} ›</span>
         </button>
 
         <section className="card card--pad">
           <Segments items={PERIODS} value={period} onChange={setPeriod} className="segments--track" />
-          <LedChart coin={coin} period={period} />
+          {demo ? <LedChart coin={coin} period={period} /> : <LiveChart coin={coin} period={period} buys={buys} />}
         </section>
 
         <section className="card card--pad">
