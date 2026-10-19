@@ -90,3 +90,29 @@ export function nextPurchase(list, from = new Date()) {
   const amount = best.plans.reduce((s, p) => s + p.amount, 0)
   return { plans: best.plans, when: best.date, days, date, amount, coins: best.plans.map((p) => p.coin) }
 }
+
+/* Общая цель в долларах: число или null, пока не поставлена */
+
+const GOAL_KEY = 'kopitron.goal'
+
+let goal = (() => {
+  try { const v = Number(localStorage.getItem(GOAL_KEY)); return v > 0 ? v : null } catch { return null }
+})()
+
+export const setGoal = (value) => {
+  goal = value > 0 ? value : null
+  try {
+    if (goal) localStorage.setItem(GOAL_KEY, String(goal))
+    else localStorage.removeItem(GOAL_KEY)
+  } catch { /* без хранилища живём в памяти */ }
+  listeners.forEach((l) => l())
+}
+
+export function useGoal() {
+  return useSyncExternalStore(
+    (l) => { listeners.add(l); return () => listeners.delete(l) },
+    () => goal,
+  )
+}
+
+export const getGoal = () => goal

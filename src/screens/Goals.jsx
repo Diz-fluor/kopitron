@@ -5,7 +5,7 @@ import { COINS, GOAL, money } from '../data/mock.js'
 import { DAYS } from '../onboarding/plan.js'
 import { haptic } from '../telegram.js'
 import { Segments } from './History.jsx'
-import { usePlans, savePlan, deletePlan, planTitle, planWhen, DEFAULT_GOALS } from '../data/plans.js'
+import { usePlans, savePlan, deletePlan, planTitle, planWhen, DEFAULT_GOALS, useGoal } from '../data/plans.js'
 import { usePortfolio, fmtAmount } from '../api/tonapi.js'
 import { useWallet, isDemoWallet } from '../wallet.js'
 
@@ -54,22 +54,31 @@ export function SegBar({ value, total = 20 }) {
 /* Вкладка «Цели и планы» */
 export function Goals({ nav }) {
   const { plans, total, demo } = useLivePlans()
-  const pct = Math.min(100, Math.round((total / GOAL.target) * 100))
+  const userGoal = useGoal()
+  const target = demo ? GOAL.target : userGoal
+  const pct = target ? Math.min(100, Math.round((total / target) * 100)) : 0
   return (
     <div className="scr scr--tab">
       <div className="scr__body">
         <h1 className="title">Цели и планы</h1>
-        <section className="card card--pad goal-total">
-          <div className="goal-total__head">
-            <span className="label">Общая цель</span>
-            {demo && <span className="muted">≈ июнь 2027</span>}
-          </div>
-          <div className="goal-total__row">
-            <span>{money(Math.round(total))} из {money(GOAL.target)}</span>
-            <span>{pct}%</span>
-          </div>
-          <SegBar value={pct} />
-        </section>
+        {target ? (
+          <button type="button" className="card card--pad goal-total" onClick={() => nav.push('goal')}>
+            <div className="goal-total__head">
+              <span className="label">Общая цель</span>
+              <span className="muted">{demo ? '≈ июнь 2027' : 'Изменить ›'}</span>
+            </div>
+            <div className="goal-total__row">
+              <span>{money(Math.round(total))} из {money(target)}</span>
+              <span>{pct}%</span>
+            </div>
+            <SegBar value={pct} />
+          </button>
+        ) : (
+          <button type="button" className="card card--pad goal-total goal-total--empty" onClick={() => nav.push('goal')}>
+            <div className="goal-total__row"><span>Поставь общую цель</span><span className="row__chevron">›</span></div>
+            <span className="muted">Сколько хочешь накопить в долларах. Поменять можно в любой момент</span>
+          </button>
+        )}
 
         <span className="label section-label">Планы</span>
         {plans.length === 0 && <p className="muted empty-note">Планов пока нет. Создай первый: монета, сумма и день.</p>}

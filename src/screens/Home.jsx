@@ -4,7 +4,7 @@ import CoinIcon from '../components/CoinIcon.jsx'
 import { DotNumber } from '../components/DotGrid.jsx'
 import { COINS, PORTFOLIO, NEXT_PURCHASE, GOAL, money, pct } from '../data/mock.js'
 import { usePortfolio, fmtAmount } from '../api/tonapi.js'
-import { usePlans, planShort, nextPurchase } from '../data/plans.js'
+import { usePlans, planShort, nextPurchase, useGoal } from '../data/plans.js'
 import { isDemoWallet } from '../wallet.js'
 import './Home.css'
 
@@ -13,6 +13,7 @@ const names = (coins, key = 'name') => coins.map((c) => COINS[c][key]).join(', '
 // Главная: всё на первом экране, свайп в 16 px над таб-баром
 export default function Home({ nav, wallet, purchased, onSwipe, onConnect }) {
   const plans = usePlans()
+  const userGoal = useGoal()
   const demo = isDemoWallet(wallet)
   const empty = !wallet
   const live = usePortfolio(wallet && !demo ? wallet : null)
@@ -41,8 +42,9 @@ export default function Home({ nav, wallet, purchased, onSwipe, onConnect }) {
     ? { days: NEXT_PURCHASE.days, date: NEXT_PURCHASE.date, amount: 10, coins: ['btc'] }
     : nextPurchase(plans)
   const after = next?.when ? nextPurchase(plans, new Date(+next.when + 86400000)) : null
+  const goalTarget = demo ? GOAL.target : userGoal
   const goalSaved = demo ? GOAL.saved : total
-  const goalPct = Math.min(100, Math.round((goalSaved / GOAL.target) * 100))
+  const goalPct = goalTarget ? Math.min(100, Math.round((goalSaved / goalTarget) * 100)) : 0
 
   return (
     <div className="scr scr--tab">
@@ -102,10 +104,15 @@ export default function Home({ nav, wallet, purchased, onSwipe, onConnect }) {
             <strong className="home__nowallet">Кошелёк не подключён</strong>
             <p className="muted home__nowallet-sub">Подключи, и Kopitron начнёт копить по плану</p>
           </section>
+        ) : !plans.length && !demo ? null : !goalTarget ? (
+          <button type="button" className="card card--pad goal goal--empty" onClick={() => nav.push('goal')}>
+            <span className="goal__head"><span>Поставь цель</span><span className="row__chevron">›</span></span>
+            <span className="muted goal__eta">Сколько хочешь накопить. С целью проще не бросить</span>
+          </button>
         ) : (
-          <button type="button" className="card card--pad goal" onClick={() => nav.tab('goals')}>
+          <button type="button" className="card card--pad goal" onClick={() => nav.push('goal')}>
             <span className="goal__head">
-              <span>Цель {money(GOAL.target)}</span>
+              <span>Цель {money(goalTarget)}</span>
               <span>{goalPct}%</span>
             </span>
             <span className="segbar">

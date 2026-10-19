@@ -1,6 +1,8 @@
 .section-label { margin: 10px 4px 0; }
 
-.goal-total { display: flex; flex-direction: column; gap: 12px; }
+.goal-total { display: flex; flex-direction: column; gap: 12px; width: 100%; border: 0; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.goal-total--empty { background: none; outline: 1.5px dashed var(--color-text-secondary); outline-offset: -1.5px; gap: 6px; }
+.goal-total--empty .muted { font-size: 13px; }
 .goal-total__head { display: flex; justify-content: space-between; font-size: 13px; }
 .goal-total__row { display: flex; justify-content: space-between; font-size: 18px; font-weight: 600; }
 

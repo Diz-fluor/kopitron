@@ -147,16 +147,19 @@ export function Waiting({ amount = 10, onDone, progress, title = 'Покупае
 }
 
 /* 05 Успех */
-export function Success({ amount = 10, onHome, received }) {
+export function Success({ amount = 10, onHome, received, goal, saved }) {
   const [emotion, setEmotion] = useState('wink')
   useEffect(() => {
     const t = setTimeout(() => setEmotion('joy'), 900)
     return () => clearTimeout(t)
   }, [])
   const fmt = (n) => n.toFixed(1).replace('.', ',')
-  const before = fmt((GOAL.saved / GOAL.target) * 100)
-  const after = fmt(((GOAL.saved + amount) / GOAL.target) * 100)
-  const lit = Math.floor((GOAL.saved / GOAL.target) * 20)
+  const target = goal ?? GOAL.target
+  const was = saved ?? GOAL.saved
+  const before = fmt(Math.min(100, (was / target) * 100))
+  const after = fmt(Math.min(100, ((was + amount) / target) * 100))
+  const lit = Math.min(20, Math.floor((was / target) * 20))
+  const showGoal = goal !== null
 
   return (
     <div className="scr">
@@ -164,15 +167,15 @@ export function Success({ amount = 10, onHome, received }) {
         <Hero emotion={emotion} title="Монета в копилке">
           <p className="hero-state__sub accent">{received ?? `+${RECEIVE} BTC`}, ${amount}</p>
         </Hero>
-        <section className="card card--pad progress">
-          <div className="progress__head"><span>Цель {money(GOAL.target)}</span><span>{before}% → {after}%</span></div>
+        {showGoal && <section className="card card--pad progress">
+          <div className="progress__head"><span>Цель {money(target)}</span><span>{before}% → {after}%</span></div>
           <div className="segbar">
             {Array.from({ length: 20 }, (_, i) => (
               <i key={i} className={i < lit ? 'is-on' : i === lit ? 'is-new' : ''} />
             ))}
           </div>
           <span className="muted progress__note">Следующая покупка: пт, {NEXT_PURCHASE.after}</span>
-        </section>
+        </section>}
       </div>
       <div className="scr__foot scr__foot--bottom">
         <MainButton onClick={onHome}>На главную</MainButton>
@@ -184,15 +187,15 @@ export function Success({ amount = 10, onHome, received }) {
 /* 06 Поставим цель? (только после первой покупки) */
 const PRESETS = [1000, 5000, 10000]
 
-export function SetGoal({ onSave, onSkip }) {
-  const [value, setValue] = useState(5000)
-  const [own, setOwn] = useState(false)
+export function SetGoal({ onSave, onSkip, first = true, initial }) {
+  const [value, setValue] = useState(initial ?? 5000)
+  const [own, setOwn] = useState(initial != null && !PRESETS.includes(initial))
   return (
     <div className="scr">
       <div className="scr__body">
-        <span className="label accent">После первой покупки</span>
-        <h1 className="title">Поставим цель?</h1>
-        <p className="lead">Первая монета в копилке. Цель поможет не бросить.</p>
+        {first && <span className="label accent">После первой покупки</span>}
+        <h1 className="title">{first ? 'Поставим цель?' : initial ? 'Цель' : 'Поставим цель'}</h1>
+        <p className="lead">{first ? 'Первая монета в копилке. Цель поможет не бросить.' : 'Сколько хочешь накопить. Цель поможет не бросить.'}</p>
         <label className="goal-input">
           <span className="goal-input__sign num">$</span>
           <input
@@ -223,8 +226,8 @@ export function SetGoal({ onSave, onSkip }) {
         <p className="muted goal-hint">В долларах, так проще сравнивать. Поменять можно в любой момент.</p>
       </div>
       <div className="scr__foot scr__foot--bottom">
-        <MainButton disabled={!value} onClick={() => onSave(value)}>Поставить цель</MainButton>
-        <TextButton onClick={onSkip}>Не сейчас</TextButton>
+        <MainButton disabled={!value} onClick={() => onSave(value)}>{initial ? 'Сохранить' : 'Поставить цель'}</MainButton>
+        <TextButton onClick={onSkip}>{first ? 'Не сейчас' : 'Отмена'}</TextButton>
       </div>
     </div>
   )

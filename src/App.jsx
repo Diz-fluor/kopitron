@@ -13,7 +13,7 @@ import { usePortfolio } from './api/tonapi.js'
 import { preparePurchase, executePurchase } from './api/omniston.js'
 import { isDemoWallet } from './wallet.js'
 import { COINS } from './data/mock.js'
-import { setPlansFromOnboarding } from './data/plans.js'
+import { setPlansFromOnboarding, setGoal, useGoal, getGoal, usePlans } from './data/plans.js'
 import { backButton } from './telegram.js'
 import './styles/ui.css'
 
@@ -24,7 +24,14 @@ const store = {
 }
 
 // Экраны поверх вкладок. withTabs — показывать ли таб-бар (по спеке: Монета и Детали покупки)
+// Экран цели поверх вкладки: поставить или поменять общую цель
+function GoalScreen({ nav }) {
+  const goal = useGoal()
+  return <SetGoal first={false} initial={goal ?? undefined} onSave={(v) => { setGoal(v); nav.back() }} onSkip={nav.back} />
+}
+
 const SCREENS = {
+  goal: { C: GoalScreen },
   coin: { C: Coin, withTabs: true },
   purchase: { C: PurchaseDetails, withTabs: true },
   plan: { C: PlanEdit },
@@ -81,6 +88,10 @@ function Main({ plan }) {
   const [tonConnectUI] = useTonConnectUI()
   const real = wallet && !isDemoWallet(wallet)
   const portfolio = usePortfolio(real ? wallet : null)
+  const goal = useGoal()
+  const myPlans = usePlans()
+  // сколько уже в копилке: только монеты из планов
+  const saved = myPlans.reduce((s, p) => s + (portfolio.data?.[p.coin]?.value ?? 0), 0)
   const [buy, setBuy] = useState({ quotes: [], progress: 0, received: '', error: null, usd: amount })
   const [low, setLow] = useState(null)
 
@@ -157,17 +168,20 @@ function Main({ plan }) {
         <Success
           amount={real ? buy.usd : amount}
           received={real ? buy.received : undefined}
+          goal={real ? goal : undefined}
+          saved={real ? Math.max(0, saved - buy.usd) : undefined}
           onHome={() => {
             if (!firstDone) {
               setFirstDone(true)
               store.set('kopitron.firstPurchase', '1')
-              setFlow('setgoal')
+              if (getGoal()) finishPurchase()
+              else setFlow('setgoal')
             } else finishPurchase()
           }}
         />
       </div>
     )
-  if (flow === 'setgoal') return <div className="app"><SetGoal onSave={finishPurchase} onSkip={finishPurchase} /></div>
+  if (flow === 'setgoal') return <div className="app"><SetGoal onSave={(v) => { setGoal(v); finishPurchase() }} onSkip={finishPurchase} /></div>
   if (flow === 'cancelled')
     return (
       <div className="app">

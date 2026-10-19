@@ -27,6 +27,11 @@
   gap: 10px;
   cursor: pointer;
 }
+.goal--empty {
+  background: none;
+  outline: 1.5px dashed var(--color-text-secondary);
+  outline-offset: -1.5px;
+}
 .goal__head { display: flex; justify-content: space-between; font-size: 15px; font-weight: 600; }
 .goal__eta { font-size: 12px; }
 
