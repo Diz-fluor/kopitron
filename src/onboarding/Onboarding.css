@@ -13,7 +13,10 @@
   padding: 16px var(--layout-screen-padding) 8px;
   display: flex;
   flex-direction: column;
+  overflow-x: hidden;
   overflow-y: auto;
+  /* без полос прокрутки на десктопе */
+  scrollbar-width: none;
   animation: screen-in-forward 260ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 .onb__screen--back { animation-name: screen-in-back; }
@@ -477,3 +480,5 @@
   .bullets { margin-top: 14px; gap: 8px; }
   .safe { margin-top: 10px; padding: 16px; }
 }
+
+.onb__screen::-webkit-scrollbar { display: none; }

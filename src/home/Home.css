@@ -1,6 +1,8 @@
 .screen {
   height: 100%;
+  overflow-x: hidden;
   overflow-y: auto;
+  scrollbar-width: none;
   max-width: 480px;
   margin: 0 auto;
   padding: 24px var(--layout-screen-padding) 0;
@@ -70,3 +72,5 @@
 }
 .screen__count { color: var(--color-text-secondary); text-align: center; }
 .screen__count span { color: var(--color-text); }
+
+.screen::-webkit-scrollbar { display: none; }
