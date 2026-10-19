@@ -139,7 +139,9 @@
   align-items: center;
   font-size: 16px;
 }
-.reminders { margin: 10px 0 6px; display: flex; flex-direction: column; gap: 14px; transition: opacity 160ms ease; }
+.reminders { margin: 10px 0 6px; padding: 0 16px 0 20px; display: flex; flex-direction: column; gap: 14px; transition: opacity 160ms ease; }
 .reminders.is-off { opacity: 0.4; pointer-events: none; }
 .reminders__row { display: flex; align-items: center; gap: 12px; }
-.reminders__time { display: flex; justify-content: space-between; padding: 12px 0 16px; font-size: 15px; }
+.reminders__time { display: flex; justify-content: space-between; padding: 12px 16px 16px 20px; font-size: 15px; }
+.sheet .section-label { margin-left: 20px; }
+.empty-note { margin: 4px 4px; font-size: 14px; }

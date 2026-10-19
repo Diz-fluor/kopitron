@@ -5,6 +5,35 @@ import { COINS, GOAL, money } from '../data/mock.js'
 import { DAYS } from '../onboarding/plan.js'
 import { haptic } from '../telegram.js'
 import { Segments } from './History.jsx'
+import { usePlans, savePlan, deletePlan, planTitle, planWhen, DEFAULT_GOALS } from '../data/plans.js'
+import { usePortfolio, fmtAmount } from '../api/tonapi.js'
+import { useWallet, isDemoWallet } from '../wallet.js'
+
+// Живые планы из хранилища; в демо-режиме — примерные из макета
+function useLivePlans() {
+  const wallet = useWallet()
+  const stored = usePlans()
+  const demo = isDemoWallet(wallet)
+  const live = usePortfolio(wallet && !demo ? wallet : null)
+  if (demo) return { demo, plans: PLANS, total: GOAL.saved }
+  const d = live.data ?? {}
+  const plans = stored.map((p) => {
+    const have = d[p.coin]?.amount ?? 0
+    const goal = p.goal ?? DEFAULT_GOALS[p.coin]
+    return {
+      ...p,
+      title: planTitle(p) + (p.paused ? ', пауза' : ''),
+      goal: `${fmtAmount(goal)} ${COINS[p.coin].ticker}`,
+      goalValue: goal,
+      saved: `${fmtAmount(have)} ${COINS[p.coin].ticker}`,
+      pct: Math.min(100, Math.round((have / goal) * 100)),
+      eta: '',
+      when: planWhen(p),
+    }
+  })
+  const total = ['btc', 'eth', 'gram'].filter((c) => stored.some((p) => p.coin === c)).reduce((s, c) => s + (d[c]?.value ?? 0), 0)
+  return { demo, plans, total }
+}
 import './Goals.css'
 
 export const PLANS = [
@@ -24,7 +53,8 @@ export function SegBar({ value, total = 20 }) {
 
 /* Вкладка «Цели и планы» */
 export function Goals({ nav }) {
-  const pct = Math.round((GOAL.saved / GOAL.target) * 100)
+  const { plans, total, demo } = useLivePlans()
+  const pct = Math.min(100, Math.round((total / GOAL.target) * 100))
   return (
     <div className="scr scr--tab">
       <div className="scr__body">
@@ -32,17 +62,18 @@ export function Goals({ nav }) {
         <section className="card card--pad goal-total">
           <div className="goal-total__head">
             <span className="label">Общая цель</span>
-            <span className="muted">≈ июнь 2027</span>
+            {demo && <span className="muted">≈ июнь 2027</span>}
           </div>
           <div className="goal-total__row">
-            <span>{money(GOAL.saved)} из {money(GOAL.target)}</span>
+            <span>{money(Math.round(total))} из {money(GOAL.target)}</span>
             <span>{pct}%</span>
           </div>
           <SegBar value={pct} />
         </section>
 
         <span className="label section-label">Планы</span>
-        {PLANS.map((p) => (
+        {plans.length === 0 && <p className="muted empty-note">Планов пока нет. Создай первый: монета, сумма и день.</p>}
+        {plans.map((p) => (
           <button key={p.coin} type="button" className="card card--pad plan-card" onClick={() => nav.push('plan', { coin: p.coin })}>
             <span className="plan-card__top">
               <CoinIcon coin={p.coin} size={36} />
@@ -57,7 +88,7 @@ export function Goals({ nav }) {
           </button>
         ))}
 
-        <button type="button" className="new-plan" onClick={() => nav.push('newplan')}>+ Новый план</button>
+        {plans.length < 3 && <button type="button" className="new-plan" onClick={() => nav.push('newplan')}>+ Новый план</button>}
       </div>
     </div>
   )
@@ -109,9 +140,14 @@ const perMonth = (amount, freq) => Math.round((amount * 52) / 12 / (freq === 'we
 
 /* План монеты */
 export function PlanEdit({ coin = 'btc', nav }) {
-  const base = PLANS.find((p) => p.coin === coin) ?? PLANS[0]
+  const { demo, plans } = useLivePlans()
+  const base = plans.find((p) => p.coin === coin) ?? { coin, amount: 10, freq: 'week', day: 4, pct: 0, goal: '', saved: '', eta: '' }
   const [p, setP] = useState(base)
   const name = COINS[coin].name
+  const save = (patch = {}) => {
+    if (!demo) savePlan({ coin, amount: p.amount, freq: p.freq, day: p.day, paused: p.paused ?? false, goal: base.goalValue, ...patch })
+    nav.back()
+  }
   return (
     <div className="scr">
       <div className="scr__body">
@@ -121,7 +157,7 @@ export function PlanEdit({ coin = 'btc', nav }) {
         <section className="card card--pad coin-goal">
           <div className="coin-goal__head"><span>Цель по монете</span><span className="muted">{p.goal} ›</span></div>
           <SegBar value={p.pct} />
-          <span className="muted coin-goal__note">Накоплено {p.saved}. С этим планом ≈ {p.eta}</span>
+          <span className="muted coin-goal__note">Накоплено {p.saved}{p.eta ? `. С этим планом ≈ ${p.eta}` : ''}</span>
         </section>
         <div className="summary">
           <strong>≈ ${perMonth(p.amount, p.freq)} в месяц</strong>
@@ -129,10 +165,10 @@ export function PlanEdit({ coin = 'btc', nav }) {
         </div>
       </div>
       <div className="scr__foot scr__foot--bottom">
-        <MainButton onClick={() => nav.back()}>Сохранить</MainButton>
+        <MainButton onClick={() => save()}>Сохранить</MainButton>
         <div className="plan-actions">
-          <button type="button" className="muted" onClick={() => nav.back()}>Пауза</button>
-          <button type="button" className="accent" onClick={() => nav.back()}>Удалить план</button>
+          <button type="button" className="muted" onClick={() => save({ paused: !p.paused })}>{p.paused ? 'Продолжить' : 'Пауза'}</button>
+          <button type="button" className="accent" onClick={() => { if (!demo) deletePlan(coin); haptic.tick(); nav.back() }}>Удалить план</button>
         </div>
       </div>
     </div>
@@ -141,9 +177,11 @@ export function PlanEdit({ coin = 'btc', nav }) {
 
 /* Новый план */
 export function NewPlan({ nav }) {
-  const [coin, setCoin] = useState('gram')
-  const [p, setP] = useState({ amount: 3, freq: 'month', day: 4 })
-  const taken = { btc: true, eth: true }
+  const { demo, plans } = useLivePlans()
+  const taken = Object.fromEntries(plans.map((x) => [x.coin, true]))
+  const free = ['btc', 'eth', 'gram'].find((c) => !taken[c]) ?? 'btc'
+  const [coin, setCoin] = useState(free)
+  const [p, setP] = useState({ amount: 10, freq: 'week', day: 4 })
   return (
     <div className="scr">
       <div className="scr__body">
@@ -169,9 +207,9 @@ export function NewPlan({ nav }) {
         <AmountCard value={p.amount} onChange={(amount) => setP({ ...p, amount })} />
         <ScheduleCard freq={p.freq} day={p.day} onChange={(x) => setP({ ...p, ...x })} />
         <section className="card card--pad coin-goal">
-          <div className="coin-goal__head"><span>Цель по монете</span><span className="muted">100 GRAM ›</span></div>
+          <div className="coin-goal__head"><span>Цель по монете</span><span className="muted">{fmtAmount(DEFAULT_GOALS[coin])} {COINS[coin].ticker} ›</span></div>
           <SegBar value={0} />
-          <span className="muted coin-goal__note">Начнём с нуля. С этим планом ≈ к апрелю 2027</span>
+          <span className="muted coin-goal__note">Начнём с нуля</span>
         </section>
         <div className="summary">
           <strong>${perMonth(p.amount, p.freq)} в месяц</strong>
@@ -179,7 +217,15 @@ export function NewPlan({ nav }) {
         </div>
       </div>
       <div className="scr__foot scr__foot--bottom">
-        <MainButton onClick={() => nav.back()}>Создать план</MainButton>
+        <MainButton
+          disabled={taken[coin]}
+          onClick={() => {
+            if (!demo) savePlan({ coin, amount: p.amount, freq: p.freq, day: p.day, paused: false, goal: DEFAULT_GOALS[coin] })
+            nav.back()
+          }}
+        >
+          Создать план
+        </MainButton>
       </div>
     </div>
   )
@@ -196,8 +242,9 @@ export function Toggle({ on, onChange }) {
 
 /* Шторка «Напоминания» */
 export function RemindersSheet({ onClose }) {
+  const { plans } = useLivePlans()
   const [all, setAll] = useState(true)
-  const [each, setEach] = useState({ btc: true, eth: true, gram: false })
+  const [each, setEach] = useState({ btc: true, eth: true, gram: true })
   return (
     <div className="sheet-backdrop" onClick={onClose}>
       <div className="sheet" onClick={(e) => e.stopPropagation()}>
@@ -210,7 +257,8 @@ export function RemindersSheet({ onClose }) {
         </div>
         <span className="label section-label">По планам</span>
         <div className={`reminders ${all ? '' : 'is-off'}`}>
-          {PLANS.map((p) => (
+          {plans.length === 0 && <p className="muted empty-note">Планов пока нет</p>}
+          {plans.map((p) => (
             <div key={p.coin} className="reminders__row">
               <CoinIcon coin={p.coin} size={36} />
               <span className="row__main">

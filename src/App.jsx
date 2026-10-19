@@ -13,6 +13,7 @@ import { usePortfolio } from './api/tonapi.js'
 import { preparePurchase, executePurchase } from './api/omniston.js'
 import { isDemoWallet } from './wallet.js'
 import { COINS } from './data/mock.js'
+import { setPlansFromOnboarding } from './data/plans.js'
 import { backButton } from './telegram.js'
 import './styles/ui.css'
 
@@ -46,6 +47,7 @@ export default function App() {
         onFinish={({ plan }) => {
           setPlan(plan)
           store.set('kopitron.plan', JSON.stringify(plan))
+          setPlansFromOnboarding(plan)
           store.set('kopitron.onboarded', '1')
           setOnboarded(true)
         }}
@@ -83,14 +85,14 @@ function Main({ plan }) {
   const [low, setLow] = useState(null)
 
   // Настоящая покупка: проверяем баланс → котировка → подпись → отслеживание
-  const startPurchase = async (usd = amount) => {
+  const startPurchase = async (usd = amount, planCoins) => {
     const d = portfolio.data
     const usdt = d?.usdt?.amount ?? 0
     const gram = d?.gram?.amount ?? 0
-    if (d && usdt < usd) { setLow({ balance: Math.floor(usdt * 100) / 100 }); setSheet('low'); return }
+    if (d && usdt < usd) { setBuy((b) => ({ ...b, coins: planCoins })); setLow({ balance: Math.floor(usdt * 100) / 100 }); setSheet('low'); return }
     if (d && gram < 0.3) { setLow({ gas: true }); setSheet('low'); return }
-    const coins = plan?.coins?.length ? plan.coins : ['btc']
-    setBuy({ quotes: [], progress: 0, received: '', error: null, usd })
+    const coins = planCoins?.length ? planCoins : buy.coins?.length ? buy.coins : ['btc']
+    setBuy({ quotes: [], progress: 0, received: '', error: null, usd, coins })
     setFlow('quoting')
     try {
       const quotes = await preparePurchase({ coins, usd })
@@ -144,7 +146,7 @@ function Main({ plan }) {
           title="Не получилось"
           sub={buy.error?.message ?? 'Что-то пошло не так'}
           note="Если транзакция ушла, а обмен не прошёл, деньги вернутся в кошелёк автоматически"
-          onRetry={() => startPurchase(buy.usd)}
+          onRetry={() => startPurchase(buy.usd, buy.coins)}
           onHome={() => setFlow(null)}
         />
       </div>
@@ -170,7 +172,7 @@ function Main({ plan }) {
     return (
       <div className="app">
         <Cancelled
-          onRetry={() => { if (real) startPurchase(buy.usd); else { setFlow(null); setSheet('sign') } }}
+          onRetry={() => { if (real) startPurchase(buy.usd, buy.coins); else { setFlow(null); setSheet('sign') } }}
           onHome={() => setFlow(null)}
         />
       </div>
@@ -192,7 +194,7 @@ function Main({ plan }) {
             plan={plan}
             purchased={purchased}
             onConnect={() => nav.push('wallet')}
-            onSwipe={() => (real ? startPurchase() : setSheet(params.get('demo') === 'low' ? 'low' : 'sign'))}
+            onSwipe={(next) => (real ? startPurchase(next.amount, next.coins) : setSheet(params.get('demo') === 'low' ? 'low' : 'sign'))}
           />
         ) : tab === 'history' ? (
           <History nav={nav} />
@@ -218,7 +220,7 @@ function Main({ plan }) {
           balance={low?.balance ?? 4}
           gas={low?.gas}
           onClose={() => setSheet(null)}
-          onBuyAvailable={() => { setSheet(null); startPurchase(Math.floor(low?.balance ?? 0)) }}
+          onBuyAvailable={() => { setSheet(null); startPurchase(Math.floor(low?.balance ?? 0), buy.coins) }}
         />
       )}
       {sheet === 'reminders' && <RemindersSheet onClose={() => setSheet(null)} />}
