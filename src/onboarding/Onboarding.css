@@ -485,3 +485,5 @@
 }
 
 .onb__screen::-webkit-scrollbar { display: none; }
+
+.table dd.is-mono { font-family: var(--font-mono); font-size: 14px; }

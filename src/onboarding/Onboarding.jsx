@@ -4,6 +4,8 @@ import MainButton, { TextButton } from '../components/MainButton.jsx'
 import KopitronFace from '../components/KopitronFace.jsx'
 import CoinIcon, { CoinStack } from '../components/CoinIcon.jsx'
 import { haptic, backButton } from '../telegram.js'
+import { useTonAddress, useTonConnectUI } from '@tonconnect/ui-react'
+import { shortAddress } from '../wallet.js'
 import {
   PRESETS, FREQS, DAYS, coinNames, coinsText, perMonth, freqText, dayEach, dayNearest, dayText, firstPurchaseDate, shares,
 } from './plan.js'
@@ -384,8 +386,36 @@ function WalletGlyph({ kind }) {
   )
 }
 
-function Wallet({ go, wallet, setWallet }) {
-  const [choice, setChoice] = useState(wallet ?? 'telegram')
+function Wallet({ go, setWallet }) {
+  const [choice, setChoice] = useState('telegram')
+  const [tonConnectUI] = useTonConnectUI()
+  const address = useTonAddress()
+  const waitingRef = useRef(false)
+
+  // кошелёк подключился после нашего запроса: идём к итогу
+  useEffect(() => {
+    if (address && waitingRef.current) {
+      waitingRef.current = false
+      setWallet(address)
+      haptic.success()
+      go('done')
+    }
+  }, [address])
+
+  const connect = async () => {
+    if (address) {
+      setWallet(address)
+      go('done')
+      return
+    }
+    waitingRef.current = true
+    try {
+      if (choice === 'telegram') await tonConnectUI.openSingleWalletModal('telegram-wallet')
+      else await tonConnectUI.openModal()
+    } catch {
+      await tonConnectUI.openModal()
+    }
+  }
   const pick = (w) => {
     haptic.tick()
     setChoice(w)
@@ -426,15 +456,7 @@ function Wallet({ go, wallet, setWallet }) {
       </section>
 
       <Foot>
-        <MainButton
-          onClick={() => {
-            // подключение через TON Connect добавим на следующем шаге, пока имитируем
-            setWallet(choice)
-            go('done')
-          }}
-        >
-          Подключить
-        </MainButton>
+        <MainButton onClick={connect}>{address ? 'Дальше' : 'Подключить'}</MainButton>
         <TextButton
           onClick={() => {
             setWallet(null)
@@ -465,7 +487,7 @@ function Done({ plan, wallet, onFinish, go }) {
     ['Монеты', coinsText(plan.coins)],
     ['День', plan.freq === 'week' ? dayEach(plan.day) : dayText(plan)],
     ['Первая покупка', firstPurchaseDate(plan), 'accent'],
-    ['Кошелёк', wallet ? 'подключён' : 'не подключён', wallet ? '' : 'muted'],
+    ['Кошелёк', wallet ? shortAddress(wallet) : 'не подключён', wallet ? 'mono' : 'muted'],
   ]
 
   return (
