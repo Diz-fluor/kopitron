@@ -19,27 +19,39 @@ jobs:
           node-version: 22
 
       - name: Публикуем воркер и кладём токен бота
-        id: deploy
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
         run: |
-          npx --yes wrangler@4 deploy | tee deploy.log
+          npx --yes wrangler@4 deploy
           echo "$BOT_TOKEN" | npx --yes wrangler@4 secret put BOT_TOKEN
-          URL=$(grep -oE 'https://[a-z0-9.-]+\.workers\.dev' deploy.log | head -1)
-          echo "url=$URL" >> "$GITHUB_OUTPUT"
+
+      - name: Узнаём адрес воркера
+        id: url
+        env:
+          CF: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          ACCOUNT=$(curl -s https://api.cloudflare.com/client/v4/accounts -H "Authorization: Bearer $CF" | jq -r '.result[0].id')
+          SUB=$(curl -s "https://api.cloudflare.com/client/v4/accounts/$ACCOUNT/workers/subdomain" -H "Authorization: Bearer $CF" | jq -r '.result.subdomain // empty')
+          if [ -z "$SUB" ]; then
+            echo "::error::Нет адреса workers.dev. Открой Cloudflare → Workers & Pages и выбери поддомен."
+            exit 1
+          fi
+          echo "url=https://kopitron-bot.$SUB.workers.dev" >> "$GITHUB_OUTPUT"
+          echo "::notice::Воркер: https://kopitron-bot.$SUB.workers.dev"
 
       - name: Подключаем вебхук Telegram
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
-          URL: ${{ steps.deploy.outputs.url }}
+          URL: ${{ steps.url.outputs.url }}
         run: |
           SECRET=$(printf '%s' "$BOT_TOKEN" | sha256sum | cut -c1-32)
-          curl -sf "https://api.telegram.org/bot${BOT_TOKEN}/setWebhook" \
+          RES=$(curl -s "https://api.telegram.org/bot${BOT_TOKEN}/setWebhook" \
             -d "url=${URL}/telegram" \
             -d "secret_token=${SECRET}" \
-            -d 'allowed_updates=["message","callback_query"]' | grep -q '"ok":true'
-          curl -sf "https://api.telegram.org/bot${BOT_TOKEN}/setMyCommands" \
+            --data-urlencode 'allowed_updates=["message","callback_query"]')
+          echo "::notice::setWebhook: $RES"
+          echo "$RES" | grep -q '"ok":true' || exit 1
+          curl -s "https://api.telegram.org/bot${BOT_TOKEN}/setMyCommands" \
             -H 'content-type: application/json' \
             -d '{"commands":[{"command":"start","description":"Начать"},{"command":"remind","description":"Показать напоминание"}]}' > /dev/null
-          echo "Вебхук: ${URL}/telegram"

@@ -3,6 +3,7 @@
 name = "kopitron-bot"
 main = "src/index.js"
 compatibility_date = "2026-10-01"
+workers_dev = true
 
 [vars]
 APP_URL = "https://diz-fluor.github.io/kopitron/"
