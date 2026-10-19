@@ -1,13 +1,16 @@
 .onb {
   height: 100%;
+  max-width: 480px;
+  margin: 0 auto;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .onb__screen {
-  height: 100%;
-  max-width: 480px;
-  margin: 0 auto;
-  padding: 16px var(--layout-screen-padding) 0;
+  flex: 1;
+  min-height: 0;
+  padding: 16px var(--layout-screen-padding) 8px;
   display: flex;
   flex-direction: column;
   overflow-y: auto;
@@ -53,16 +56,24 @@
 }
 
 .onb__foot {
-  /* кнопка всегда видна: прилипает к низу, даже если экран прокручивается */
-  position: sticky;
-  bottom: 0;
+  position: relative;
   z-index: 2;
-  margin-top: auto;
-  padding: 20px 0 calc(16px + env(safe-area-inset-bottom));
-  background: linear-gradient(to top, var(--color-bg) 80%, rgba(38, 53, 51, 0));
+  padding: 12px var(--layout-screen-padding) calc(16px + env(safe-area-inset-bottom));
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  /* второстепенная кнопка над главной, главная всегда на одном месте */
+  flex-direction: column-reverse;
+  gap: 4px;
+}
+/* мягкий переход над кнопками, когда текст прокручивается под ними */
+.onb__foot::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 100%;
+  height: 20px;
+  background: linear-gradient(to top, var(--color-bg), rgba(38, 53, 51, 0));
+  pointer-events: none;
 }
 
 .card {

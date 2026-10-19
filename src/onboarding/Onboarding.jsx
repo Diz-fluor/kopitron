@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
+import { createContext, useContext, useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import MainButton, { TextButton } from '../components/MainButton.jsx'
 import KopitronFace from '../components/KopitronFace.jsx'
 import CoinIcon, { CoinStack } from '../components/CoinIcon.jsx'
@@ -10,6 +11,9 @@ import './Onboarding.css'
 
 // Шаги онбординга. «Свой план» — ветка от шага «План», в метке остаётся 03.
 const STEPS = ['hello', 'distance', 'plan', 'wallet', 'done']
+
+// Низ с кнопками живёт вне анимированного экрана, поэтому кнопка не двигается при переходах
+const FootContext = createContext(null)
 const LABELS = {
   hello: '01 / Знакомство',
   distance: '02 / На дистанции',
@@ -42,19 +46,23 @@ export default function Onboarding({ onFinish }) {
   useEffect(() => backButton(screen !== 'hello' && screen !== 'done' ? back : null), [screen])
 
   const props = { plan, setPlan, go, back, wallet, setWallet, onFinish }
+  const [footNode, setFootNode] = useState(null)
 
   return (
-    <div className="onb">
-      <div key={screen} className={`onb__screen onb__screen--${dir}`}>
-        <span className="onb__label mono-label">{LABELS[screen]}</span>
-        {screen === 'hello' && <Hello {...props} />}
-        {screen === 'distance' && <Distance {...props} />}
-        {screen === 'plan' && <Plan {...props} />}
-        {screen === 'custom' && <CustomPlan {...props} />}
-        {screen === 'wallet' && <Wallet {...props} />}
-        {screen === 'done' && <Done {...props} />}
+    <FootContext.Provider value={footNode}>
+      <div className="onb">
+        <div key={screen} className={`onb__screen onb__screen--${dir}`}>
+          <span className="onb__label mono-label">{LABELS[screen]}</span>
+          {screen === 'hello' && <Hello {...props} />}
+          {screen === 'distance' && <Distance {...props} />}
+          {screen === 'plan' && <Plan {...props} />}
+          {screen === 'custom' && <CustomPlan {...props} />}
+          {screen === 'wallet' && <Wallet {...props} />}
+          {screen === 'done' && <Done {...props} />}
+        </div>
+        <footer ref={setFootNode} className="onb__foot" />
       </div>
-    </div>
+    </FootContext.Provider>
   )
 }
 
@@ -67,8 +75,10 @@ function Head({ title, children }) {
   )
 }
 
+// Главная кнопка всегда в одной точке у нижнего края, второстепенная — над ней
 function Foot({ children }) {
-  return <footer className="onb__foot">{children}</footer>
+  const node = useContext(FootContext)
+  return node ? createPortal(children, node) : null
 }
 
 /* 01 Привет */
