@@ -69,7 +69,7 @@ async function sendReminder(env, chatId, plan) {
   const amount = plan.amount
   return api(env, 'sendPhoto', {
     chat_id: chatId,
-    photo: `${env.ASSETS_URL}reminder.png`,
+    photo: `${env.ASSETS_URL}reminder.png?v=2`,
     parse_mode: 'HTML',
     caption: reminderCaption(plan),
     reply_markup: {
