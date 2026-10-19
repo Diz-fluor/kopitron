@@ -49,17 +49,11 @@ function goalBar(saved, goal, size = 20) {
   return '●'.repeat(filled) + '○'.repeat(size - filled)
 }
 
-function reminderCaption(plan = SAMPLE_PLAN, now = new Date()) {
-  const date = new Intl.DateTimeFormat('ru-RU', {
-    weekday: 'short',
-    day: 'numeric',
-    month: 'long',
-    timeZone: plan.timeZone,
-  }).format(now)
-  const lines = [`<b>$${fmtMoney(plan.amount)} → ${plan.coin}</b>`, date]
+function reminderCaption(plan = SAMPLE_PLAN) {
+  const lines = ['<b>Пора пополнить копилку</b>', `<code>$${fmtMoney(plan.amount)} → ${plan.coin}</code>`]
   if (plan.goal) {
     const pct = Math.round((plan.saved / plan.goal) * 100)
-    lines.push('', `Цель $${fmtMoney(plan.goal)}, ${pct}%`, `<code>${goalBar(plan.saved, plan.goal)}</code>`)
+    lines.push(`Цель <code>$${fmtMoney(plan.goal)}</code>, собрано ${pct}%`, `<code>${goalBar(plan.saved, plan.goal)}</code>`)
   }
   return lines.join('\n')
 }
@@ -99,7 +93,12 @@ async function handleUpdate(env, update) {
 
   const cb = update.callback_query
   if (cb?.data === 'snooze') {
-    await api(env, 'answerCallbackQuery', { callback_query_id: cb.id, text: 'Хорошо, напомню завтра' })
+    await api(env, 'answerCallbackQuery', { callback_query_id: cb.id })
+    await api(env, 'sendMessage', {
+      chat_id: cb.message.chat.id,
+      parse_mode: 'HTML',
+      text: '<b>Хорошо, напомню завтра в 09:00</b>\nПропустить день не страшно: DCA работает на длинной дистанции.',
+    })
     // убираем кнопку «Напомнить завтра», оставляем «Положить»
     const keep = cb.message?.reply_markup?.inline_keyboard?.[0]
     return api(env, 'editMessageReplyMarkup', {
