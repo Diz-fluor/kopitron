@@ -1,0 +1,9 @@
+# Бот Kopitron на Cloudflare Workers.
+# Секрет BOT_TOKEN кладёт GitHub Actions при публикации (см. .github/workflows/bot.yml).
+name = "kopitron-bot"
+main = "src/index.js"
+compatibility_date = "2026-10-01"
+
+[vars]
+APP_URL = "https://diz-fluor.github.io/kopitron/"
+ASSETS_URL = "https://diz-fluor.github.io/kopitron/bot/"
