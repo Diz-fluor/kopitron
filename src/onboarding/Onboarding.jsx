@@ -292,7 +292,12 @@ function CustomPlan({ plan, setPlan, back }) {
   }
   const step = (delta) => {
     haptic.tick()
-    setDraft((d) => ({ ...d, amount: Math.min(500, Math.max(5, d.amount + delta)) }))
+    // до $5 шаг $1 (минимум $1, удобно для тестов), дальше шаг $5
+    setDraft((d) => {
+      const a = d.amount
+      const next = delta > 0 ? (a < 5 ? a + 1 : a + 5) : a <= 5 ? a - 1 : a - 5
+      return { ...d, amount: Math.min(500, Math.max(1, next)) }
+    })
   }
   const set = (patch) => {
     haptic.tick()
