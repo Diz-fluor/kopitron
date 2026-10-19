@@ -1,6 +1,7 @@
 // История покупок из блокчейна (TonAPI events). Только читаем.
 // Покупка = событие, где из кошелька ушли USDT, а пришли BTC, ETH или Gram.
 import { useEffect, useState } from 'react'
+import { getJSON } from './tonapi.js'
 
 const API = 'https://tonapi.io/v2'
 
@@ -11,12 +12,6 @@ const SYMBOLS = {
 }
 const coinOf = (symbol = '') => Object.keys(SYMBOLS).find((k) => SYMBOLS[k].includes(symbol.toUpperCase()))
 const units = (raw, decimals = 9) => Number(raw ?? 0) / 10 ** decimals
-
-async function getJSON(url) {
-  const r = await fetch(url)
-  if (!r.ok) throw new Error(`TonAPI ${r.status}`)
-  return r.json()
-}
 
 // Разбираем одно событие: сколько USDT ушло и что пришло по монетам
 function parseEvent(ev, me) {
@@ -74,7 +69,7 @@ function parseEvent(ev, me) {
 export async function fetchHistory(address) {
   const [account, data] = await Promise.all([
     getJSON(`${API}/accounts/${address}`),
-    getJSON(`${API}/accounts/${address}/events?limit=100`),
+    getJSON(`${API}/accounts/${address}/events?limit=100`, 20000),
   ])
   return (data.events ?? []).flatMap((ev) => parseEvent(ev, account.address))
 }
@@ -107,6 +102,6 @@ const TOKENS = {
 
 export async function fetchChart(coin, from, to = Date.now(), points = 52) {
   const q = `token=${TOKENS[coin]}&currency=usd&start_date=${Math.floor(from / 1000)}&end_date=${Math.floor(to / 1000)}&points_count=${points}`
-  const data = await getJSON(`${API}/rates/chart?${q}`)
+  const data = await getJSON(`${API}/rates/chart?${q}`, 300000)
   return (data.points ?? []).map(([t, p]) => [t * 1000, p]).sort((a, b) => a[0] - b[0])
 }

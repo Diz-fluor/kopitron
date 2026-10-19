@@ -18,10 +18,33 @@ const coinOf = (symbol = '') => {
 const units = (raw, decimals) => Number(raw) / 10 ** decimals
 const diff = (s) => (s ? parseFloat(String(s).replace('%', '').replace('−', '-')) || 0 : 0)
 
-async function getJSON(url) {
-  const r = await fetch(url)
-  if (!r.ok) throw new Error(`TonAPI ${r.status}`)
-  return r.json()
+// TonAPI без ключа держит примерно 1 запрос в секунду. Поэтому: одинаковые запросы
+// склеиваем, ответы кэшируем на 30 с, запросы идут по очереди, на 429 повторяем
+const cache = new Map()
+let queue = Promise.resolve()
+const GAP = 350
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
+
+async function load(url) {
+  for (let i = 0; ; i++) {
+    const r = await fetch(url)
+    if (r.status === 429 && i < 3) { await sleep(1200 * (i + 1)); continue }
+    if (!r.ok) throw new Error(`TonAPI ${r.status}`)
+    return r.json()
+  }
+}
+
+export function getJSON(url, ttl = 30000) {
+  const hit = cache.get(url)
+  if (hit?.data && Date.now() - hit.time < ttl) return Promise.resolve(hit.data)
+  if (hit?.pending) return hit.pending
+  const pending = queue.then(() => load(url)).then(
+    (data) => { cache.set(url, { data, time: Date.now() }); return data },
+    (e) => { cache.delete(url); throw e },
+  )
+  queue = pending.catch(() => {}).then(() => sleep(GAP))
+  cache.set(url, { ...hit, pending })
+  return pending
 }
 
 export async function fetchPortfolio(address) {
