@@ -142,7 +142,7 @@ export function WalletScreen({ nav }) {
         </section>
         <div className="two-keys">
           <MainButton variant="dark" arrow={false} center onClick={() => window.open('https://t.me/wallet', '_blank')}>Пополнить</MainButton>
-          <MainButton variant="dark" arrow={false} center onClick={() => tonConnectUI.openModal()}>Сменить</MainButton>
+          <MainButton variant="dark" arrow={false} center onClick={async () => { if (tonConnectUI.connected) await tonConnectUI.disconnect(); await tonConnectUI.openModal() }}>Сменить</MainButton>
         </div>
         <SafeCard more={() => nav.push('dca')} />
       </div>
