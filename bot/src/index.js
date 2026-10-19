@@ -38,12 +38,35 @@ async function sendWelcome(env, chatId) {
   })
 }
 
-function reminderCaption({ amount = 10, coin = 'Bitcoin' } = {}) {
-  return ['<b>Пора положить в копилку</b>', '', `<code>$${amount} → ${coin}</code>`].join('\n')
+// Пример плана, пока нет базы. Потом данные придут из D1 для каждого пользователя.
+const SAMPLE_PLAN = { amount: 10, coin: 'BTC', goal: 5000, saved: 1300, timeZone: 'Europe/Moscow' }
+
+const fmtMoney = (n) => (n >= 10000 ? n.toLocaleString('ru-RU') : String(n)) // $1284, $12 840
+
+// Шкала цели из точек: 20 делений, как на карточке
+function goalBar(saved, goal, size = 20) {
+  const filled = Math.max(0, Math.min(size, Math.round((saved / goal) * size)))
+  return '●'.repeat(filled) + '○'.repeat(size - filled)
+}
+
+function reminderCaption(plan = SAMPLE_PLAN, now = new Date()) {
+  const date = new Intl.DateTimeFormat('ru-RU', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'long',
+    timeZone: plan.timeZone,
+  }).format(now)
+  const lines = [`<b>$${fmtMoney(plan.amount)} → ${plan.coin}</b>`, date]
+  if (plan.goal) {
+    const pct = Math.round((plan.saved / plan.goal) * 100)
+    lines.push('', `Цель $${fmtMoney(plan.goal)}, ${pct}%`, `<code>${goalBar(plan.saved, plan.goal)}</code>`)
+  }
+  return lines.join('\n')
 }
 
 async function sendReminder(env, chatId, plan) {
-  const amount = plan?.amount ?? 10
+  plan = plan ?? SAMPLE_PLAN
+  const amount = plan.amount
   return api(env, 'sendPhoto', {
     chat_id: chatId,
     photo: `${env.ASSETS_URL}reminder.png`,
