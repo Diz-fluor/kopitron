@@ -58,7 +58,7 @@
 .onb__foot {
   position: relative;
   z-index: 2;
-  padding: 12px var(--layout-screen-padding) calc(16px + env(safe-area-inset-bottom));
+  padding: 12px var(--layout-screen-padding) calc(16px + var(--bottom-inset));
   display: flex;
   /* второстепенная кнопка над главной, главная всегда на одном месте */
   flex-direction: column-reverse;

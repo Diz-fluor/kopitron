@@ -1,8 +1,12 @@
 // Обёртка над Telegram WebApp SDK. Вне Telegram (в обычном браузере) всё тихо работает без него.
 const tg = window.Telegram?.WebApp
 
+// Внутри Telegram есть initData, в обычном браузере его нет
+export const inTelegram = Boolean(tg?.initData)
+
 export function initTelegram() {
-  if (!tg) return
+  document.documentElement.classList.add(inTelegram ? 'in-telegram' : 'in-browser')
+  if (!tg || !inTelegram) return
   tg.ready()
   tg.expand()
   try {

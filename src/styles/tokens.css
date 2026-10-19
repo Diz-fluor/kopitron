@@ -27,9 +27,20 @@
 
 * { box-sizing: border-box; }
 
-html, body { height: 100%; }
-/* высота видимой области: в Telegram берём из SDK, в браузере без панелей (100dvh) */
-#root { height: var(--tg-viewport-stable-height, 100dvh); }
+html, body { height: 100%; overflow: hidden; }
+
+/* приложение занимает ровно видимую область и само не прокручивается целиком */
+#root { position: fixed; inset: 0; }
+.in-telegram #root { bottom: auto; height: var(--tg-viewport-stable-height, 100%); }
+
+/* отступ снизу: системная полоска iPhone, безопасная зона Telegram */
+:root {
+  --bottom-inset: max(env(safe-area-inset-bottom), var(--tg-safe-area-inset-bottom, 0px));
+}
+/* в мобильном браузере (не в Telegram) нижняя панель браузера висит поверх страницы */
+@media (pointer: coarse) {
+  .in-browser { --bottom-inset: calc(env(safe-area-inset-bottom) + 56px); }
+}
 
 body {
   margin: 0;

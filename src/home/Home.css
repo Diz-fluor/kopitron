@@ -61,7 +61,7 @@
 .screen__foot {
   position: sticky;
   bottom: 0;
-  padding: 12px 0 calc(var(--layout-swipe-offset) + env(safe-area-inset-bottom));
+  padding: 12px 0 calc(var(--layout-swipe-offset) + var(--bottom-inset));
   background: linear-gradient(to top, var(--color-bg) 80%, rgba(38, 53, 51, 0));
   margin-top: auto;
   display: flex;
