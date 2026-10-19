@@ -58,7 +58,7 @@
 .onb__foot {
   position: relative;
   z-index: 2;
-  padding: 12px var(--layout-screen-padding) calc(16px + var(--bottom-inset));
+  padding: 8px var(--layout-screen-padding) calc(12px + var(--bottom-inset));
   display: flex;
   /* второстепенная кнопка над главной, главная всегда на одном месте */
   flex-direction: column-reverse;
@@ -463,4 +463,17 @@
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 1ms !important; transition-duration: 1ms !important; }
+}
+
+/* невысокие экраны: компактнее отступы, чтобы всё помещалось без прокрутки */
+@media (max-height: 720px) {
+  .onb__head { margin-top: 10px; }
+  .onb__title { font-size: 27px; }
+  .plans, .wallets, .coins { margin-top: 16px; }
+  .plans { gap: 8px; }
+  .plan { padding: 14px 18px; gap: 8px; }
+  .plan__name { font-size: 18px; }
+  .chart { margin-top: 16px; padding: 16px; }
+  .bullets { margin-top: 14px; gap: 8px; }
+  .safe { margin-top: 10px; padding: 16px; }
 }

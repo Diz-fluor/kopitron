@@ -37,10 +37,7 @@ html, body { height: 100%; overflow: hidden; }
 :root {
   --bottom-inset: max(env(safe-area-inset-bottom), var(--tg-safe-area-inset-bottom, 0px));
 }
-/* в мобильном браузере (не в Telegram) нижняя панель браузера висит поверх страницы */
-@media (pointer: coarse) {
-  .in-browser { --bottom-inset: calc(env(safe-area-inset-bottom) + 56px); }
-}
+
 
 body {
   margin: 0;
