@@ -33,13 +33,14 @@ export default function App() {
   const [onboarded, setOnboarded] = useState(
     () => params.get('screen') === 'home' || (store.get('kopitron.onboarded') === '1' && params.get('onboarding') !== '1'),
   )
-  const [plan, setPlan] = useState(null)
+  const [plan, setPlan] = useState(() => { try { return JSON.parse(store.get('kopitron.plan')) } catch { return null } })
 
   if (!onboarded) {
     return (
       <Onboarding
         onFinish={({ plan }) => {
           setPlan(plan)
+          store.set('kopitron.plan', JSON.stringify(plan))
           store.set('kopitron.onboarded', '1')
           setOnboarded(true)
         }}

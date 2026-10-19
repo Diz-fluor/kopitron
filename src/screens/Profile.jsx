@@ -3,9 +3,12 @@ import { useTonConnectUI } from '@tonconnect/ui-react'
 import MainButton from '../components/MainButton.jsx'
 import KopitronFace from '../components/KopitronFace.jsx'
 import { DcaChart, Diode, DotIcon, SHIELD, WalletGlyph } from '../onboarding/Onboarding.jsx'
-import { shortAddress, useWallet } from '../wallet.js'
+import { shortAddress, useWallet, isDemoWallet } from '../wallet.js'
+import { usePortfolio, fmtAmount } from '../api/tonapi.js'
 import { haptic } from '../telegram.js'
 import './Profile.css'
+
+const plural = (n) => (n % 10 === 1 && n % 100 !== 11 ? 'покупку' : [2, 3, 4].includes(n % 10) && ![12, 13, 14].includes(n % 100) ? 'покупки' : 'покупок')
 
 const tgUser = () => window.Telegram?.WebApp?.initDataUnsafe?.user
 
@@ -82,6 +85,10 @@ export function Profile({ nav, settings, openSheet }) {
 /* Профиль / Кошелёк */
 export function WalletScreen({ nav }) {
   const address = useWallet()
+  const live = usePortfolio(address && !isDemoWallet(address) ? address : null)
+  const usdt = live.data ? live.data.usdt?.amount ?? 0 : isDemoWallet(address) ? 48 : null
+  const plan = (() => { try { return JSON.parse(localStorage.getItem('kopitron.plan')) } catch { return null } })()
+  const per = plan?.amount ?? 10
   const [tonConnectUI] = useTonConnectUI()
   const [choice, setChoice] = useState('telegram')
 
@@ -137,8 +144,10 @@ export function WalletScreen({ nav }) {
           </div>
           <strong className="wallet-on__name">Кошелёк в Telegram</strong>
           <span className="muted wallet-on__addr num">{shortAddress(address)}</span>
-          <div className="wallet-on__balance"><span className="muted">Доступно для покупок</span><strong className="num">48 USDT</strong></div>
-          <span className="muted wallet-on__note">Хватит примерно на 4 покупки</span>
+          <div className="wallet-on__balance"><span className="muted">Доступно для покупок</span><strong className="num">{usdt == null ? '…' : `${fmtAmount(usdt)} USDT`}</strong></div>
+          <span className="muted wallet-on__note">
+            {usdt == null ? 'Загружаем баланс' : usdt < per ? `Для покупки нужно ${per} USDT, пополни кошелёк` : `Хватит примерно на ${Math.floor(usdt / per)} ${plural(Math.floor(usdt / per))}`}
+          </span>
         </section>
         <div className="two-keys">
           <MainButton variant="dark" arrow={false} center onClick={() => window.open('https://t.me/wallet', '_blank')}>Пополнить</MainButton>

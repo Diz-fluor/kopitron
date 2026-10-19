@@ -37,3 +37,6 @@
   .home__sum { font-size: 36px; }
   .next__body svg { width: 104px; }
 }
+
+.home__sum.is-loading { opacity: 0.35; animation: led-blink 1s steps(1) infinite; }
+@keyframes led-blink { 50% { opacity: 0.15; } }
