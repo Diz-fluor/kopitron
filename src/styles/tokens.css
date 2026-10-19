@@ -27,7 +27,9 @@
 
 * { box-sizing: border-box; }
 
-html, body, #root { height: 100%; }
+html, body { height: 100%; }
+/* высота видимой области: в Telegram берём из SDK, в браузере без панелей (100dvh) */
+#root { height: var(--tg-viewport-stable-height, 100dvh); }
 
 body {
   margin: 0;

@@ -7,7 +7,7 @@
   height: 100%;
   max-width: 480px;
   margin: 0 auto;
-  padding: 16px var(--layout-screen-padding) calc(16px + env(safe-area-inset-bottom));
+  padding: 16px var(--layout-screen-padding) 0;
   display: flex;
   flex-direction: column;
   overflow-y: auto;
@@ -53,8 +53,13 @@
 }
 
 .onb__foot {
+  /* кнопка всегда видна: прилипает к низу, даже если экран прокручивается */
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
   margin-top: auto;
-  padding-top: 20px;
+  padding: 20px 0 calc(16px + env(safe-area-inset-bottom));
+  background: linear-gradient(to top, var(--color-bg) 80%, rgba(38, 53, 51, 0));
   display: flex;
   flex-direction: column;
   gap: 8px;
