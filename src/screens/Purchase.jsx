@@ -45,19 +45,23 @@ export function SignSheet({ amount = 10, onConfirm, onCancel }) {
 }
 
 /* Шторка «Не хватает USDT» */
-export function LowBalanceSheet({ amount = 10, balance = 4, onClose }) {
+export function LowBalanceSheet({ amount = 10, balance = 4, gas, onClose, onBuyAvailable }) {
   return (
     <div className="sheet-backdrop" onClick={onClose}>
       <div className="sheet low" onClick={(e) => e.stopPropagation()}>
         <div className="sheet__grip" />
         <div className="low__face"><KopitronFace emotion="sad" size={56} color="var(--color-accent)" /></div>
-        <h2 className="low__title">Не хватает USDT</h2>
+        <h2 className="low__title">{gas ? 'Не хватает Gram на сеть' : 'Не хватает USDT'}</h2>
         <p className="sheet__text low__text">
-          В кошельке {balance} USDT, а для покупки нужно {amount}. Пополни кошелёк или купи на ту сумму, что есть.
+          {gas
+            ? 'Для обмена нужно около 0,3 Gram на комиссию сети. Пополни кошелёк на пару Gram и попробуй снова.'
+            : `В кошельке ${balance} USDT, а для покупки нужно ${amount}. Пополни кошелёк или купи на ту сумму, что есть.`}
         </p>
         <div className="low__actions">
-          <MainButton variant="dark" onClick={onClose}>Пополнить кошелёк</MainButton>
-          <MainButton variant="dark" arrow={false} center onClick={onClose}>Купить на ${balance}</MainButton>
+          <MainButton variant="dark" onClick={() => { window.Telegram?.WebApp?.openTelegramLink?.('https://t.me/wallet') ?? window.open('https://t.me/wallet'); onClose() }}>Пополнить кошелёк</MainButton>
+          {!gas && balance >= 1 && (
+            <MainButton variant="dark" arrow={false} center onClick={onBuyAvailable ?? onClose}>Купить на ${balance}</MainButton>
+          )}
           <button type="button" className="low__skip" onClick={onClose}>Пропустить эту покупку</button>
         </div>
       </div>
@@ -65,27 +69,70 @@ export function LowBalanceSheet({ amount = 10, balance = 4, onClose }) {
   )
 }
 
+/* Подпись в кошельке: кошелёк открыт, показываем, что именно подписываем */
+export function SignPending({ quotes, onCancel }) {
+  const usd = quotes.reduce((a, q) => a + q.usd, 0)
+  const fee = usd * 0.0025
+  return (
+    <div className="scr">
+      <div className="scr__body scr__body--center">
+        <Hero emotion="attention" title="Подтверди в кошельке">
+          <p className="hero-state__sub muted">Кошелёк открылся, проверь и подпиши</p>
+        </Hero>
+        <dl className="card card--pad kv">
+          <div><dt>Отправляешь</dt><dd>{usd} USDT</dd></div>
+          {quotes.map((q) => (
+            <div key={q.coin}><dt>Получишь</dt><dd className="accent">≈ {fmtCoin(q.receive)} {COINS[q.coin].ticker}</dd></div>
+          ))}
+          {quotes.length === 1 && <div><dt>Курс</dt><dd>1 {COINS[quotes[0].coin].ticker} ≈ ${Math.round(quotes[0].rate).toLocaleString('ru-RU')}</dd></div>}
+          <div><dt>Комиссия Kopitron 0,25%</dt><dd>≈ ${fee < 0.01 ? '0,01' : fee.toFixed(2).replace('.', ',')}</dd></div>
+        </dl>
+      </div>
+      <div className="scr__foot scr__foot--bottom">
+        <TextButton onClick={onCancel}>Отменить</TextButton>
+      </div>
+    </div>
+  )
+}
+
+export const fmtCoin = (n) => (n >= 1 ? n.toFixed(2) : n.toPrecision(3)).replace(/\.?0+$/, '').replace('.', ',')
+
+/* Поиск курса */
+export function Quoting() {
+  return (
+    <div className="scr">
+      <div className="scr__body scr__body--center">
+        <Hero emotion="awake" title="Ищем лучший курс">
+          <p className="hero-state__sub muted">Kopitron сравнивает обменники в сети TON</p>
+        </Hero>
+      </div>
+    </div>
+  )
+}
+
 /* 04a Ждём подтверждения */
-export function Waiting({ amount = 10, onDone }) {
+export function Waiting({ amount = 10, onDone, progress, title = 'Покупаем Bitcoin', summary }) {
+  const demo = progress == null
   const [step, setStep] = useState(0)
   useEffect(() => {
+    if (!demo) return
     const t = setInterval(() => setStep((s) => s + 1), 220)
     return () => clearInterval(t)
-  }, [])
+  }, [demo])
   useEffect(() => {
-    if (step === 20) {
+    if (demo && step === 20) {
       haptic.success()
       setTimeout(onDone, 300)
     }
   }, [step])
-  const filled = Math.min(20, step)
+  const filled = demo ? Math.min(20, step) : Math.round(progress * 20)
   const conf = filled < 10 ? 1 : 2
 
   return (
     <div className="scr">
       <div className="scr__body scr__body--center">
-        <Hero emotion="waiting" title="Покупаем Bitcoin">
-          <p className="hero-state__sub accent">${amount} → {RECEIVE} BTC</p>
+        <Hero emotion="waiting" title={title}>
+          <p className="hero-state__sub accent">{summary ?? `$${amount} → ${RECEIVE} BTC`}</p>
         </Hero>
         <section className="card card--pad progress">
           <div className="progress__head"><span>Подтверждение сети</span><span>{conf} из 2</span></div>
@@ -100,7 +147,7 @@ export function Waiting({ amount = 10, onDone }) {
 }
 
 /* 05 Успех */
-export function Success({ amount = 10, onHome }) {
+export function Success({ amount = 10, onHome, received }) {
   const [emotion, setEmotion] = useState('wink')
   useEffect(() => {
     const t = setTimeout(() => setEmotion('joy'), 900)
@@ -115,7 +162,7 @@ export function Success({ amount = 10, onHome }) {
     <div className="scr">
       <div className="scr__body scr__body--center">
         <Hero emotion={emotion} title="Монета в копилке">
-          <p className="hero-state__sub accent">+{RECEIVE} BTC, ${amount}</p>
+          <p className="hero-state__sub accent">{received ?? `+${RECEIVE} BTC`}, ${amount}</p>
         </Hero>
         <section className="card card--pad progress">
           <div className="progress__head"><span>Цель {money(GOAL.target)}</span><span>{before}% → {after}%</span></div>
@@ -184,16 +231,16 @@ export function SetGoal({ onSave, onSkip }) {
 }
 
 /* 04b Подпись отклонена */
-export function Cancelled({ onRetry, onHome }) {
+export function Cancelled({ onRetry, onHome, title = 'Покупка отменена', sub = 'Подпись отклонена в кошельке', note = 'Можно попробовать снова или купить в следующую пятницу' }) {
   return (
     <div className="scr">
       <div className="scr__body scr__body--center">
-        <Hero emotion="sad" color="var(--color-text-secondary)" title="Покупка отменена">
-          <p className="hero-state__sub muted">Подпись отклонена в кошельке</p>
+        <Hero emotion="sad" color="var(--color-text-secondary)" title={title}>
+          <p className="hero-state__sub muted">{sub}</p>
         </Hero>
         <section className="card card--pad">
           <strong className="note-title">Деньги остались у тебя</strong>
-          <p className="muted note-text">Можно попробовать снова или купить в следующую пятницу</p>
+          <p className="muted note-text">{note}</p>
         </section>
       </div>
       <div className="scr__foot scr__foot--bottom">

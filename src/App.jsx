@@ -7,7 +7,12 @@ import { History, PurchaseDetails } from './screens/History.jsx'
 import Coin from './screens/Coin.jsx'
 import { Goals, PlanEdit, NewPlan, RemindersSheet } from './screens/Goals.jsx'
 import { Profile, WalletScreen, ChoiceSheet, Dca, Support, About } from './screens/Profile.jsx'
-import { SignSheet, LowBalanceSheet, Waiting, Success, SetGoal, Cancelled } from './screens/Purchase.jsx'
+import { SignSheet, LowBalanceSheet, Waiting, Success, SetGoal, Cancelled, SignPending, Quoting, fmtCoin } from './screens/Purchase.jsx'
+import { useTonConnectUI } from '@tonconnect/ui-react'
+import { usePortfolio } from './api/tonapi.js'
+import { preparePurchase, executePurchase } from './api/omniston.js'
+import { isDemoWallet } from './wallet.js'
+import { COINS } from './data/mock.js'
 import { backButton } from './telegram.js'
 import './styles/ui.css'
 
@@ -71,6 +76,39 @@ function Main({ plan }) {
   useEffect(() => backButton(stack.length && !flow ? nav.back : null), [stack.length, flow])
 
   const amount = plan?.amount ?? 10
+  const [tonConnectUI] = useTonConnectUI()
+  const real = wallet && !isDemoWallet(wallet)
+  const portfolio = usePortfolio(real ? wallet : null)
+  const [buy, setBuy] = useState({ quotes: [], progress: 0, received: '', error: null, usd: amount })
+  const [low, setLow] = useState(null)
+
+  // Настоящая покупка: проверяем баланс → котировка → подпись → отслеживание
+  const startPurchase = async (usd = amount) => {
+    const d = portfolio.data
+    const usdt = d?.usdt?.amount ?? 0
+    const gram = d?.gram?.amount ?? 0
+    if (d && usdt < usd) { setLow({ balance: Math.floor(usdt * 100) / 100 }); setSheet('low'); return }
+    if (d && gram < 0.3) { setLow({ gas: true }); setSheet('low'); return }
+    const coins = plan?.coins?.length ? plan.coins : ['btc']
+    setBuy({ quotes: [], progress: 0, received: '', error: null, usd })
+    setFlow('quoting')
+    try {
+      const quotes = await preparePurchase({ coins, usd })
+      setBuy((b) => ({ ...b, quotes }))
+      setFlow('signing')
+      await executePurchase({
+        quotes,
+        trader: wallet,
+        tonConnectUI,
+        onProgress: (p) => { setFlow('waiting'); setBuy((b) => ({ ...b, progress: p })) },
+      })
+      setBuy((b) => ({ ...b, progress: 1, received: quotes.map((q) => `+${fmtCoin(q.receive)} ${COINS[q.coin].ticker}`).join(', ') }))
+      setFlow('success')
+    } catch (e) {
+      if (e.code === 'rejected') setFlow('cancelled')
+      else { setBuy((b) => ({ ...b, error: e })); setFlow('error') }
+    }
+  }
 
   const finishPurchase = () => {
     setFlow(null)
@@ -80,12 +118,43 @@ function Main({ plan }) {
   }
 
   // полноэкранные шаги покупки
-  if (flow === 'waiting') return <div className="app"><Waiting amount={amount} onDone={() => setFlow('success')} /></div>
+  if (flow === 'quoting') return <div className="app"><Quoting /></div>
+  if (flow === 'signing') return <div className="app"><SignPending quotes={buy.quotes} onCancel={() => setFlow('cancelled')} /></div>
+  if (flow === 'waiting') {
+    const q = buy.quotes
+    return (
+      <div className="app">
+        {real && q.length ? (
+          <Waiting
+            amount={buy.usd}
+            progress={buy.progress}
+            title={`Покупаем ${q.map((x) => COINS[x.coin].name).join(' и ')}`}
+            summary={`$${buy.usd} → ${q.map((x) => `${fmtCoin(x.receive)} ${COINS[x.coin].ticker}`).join(' + ')}`}
+          />
+        ) : (
+          <Waiting amount={amount} onDone={() => setFlow('success')} />
+        )}
+      </div>
+    )
+  }
+  if (flow === 'error')
+    return (
+      <div className="app">
+        <Cancelled
+          title="Не получилось"
+          sub={buy.error?.message ?? 'Что-то пошло не так'}
+          note="Если транзакция ушла, а обмен не прошёл, деньги вернутся в кошелёк автоматически"
+          onRetry={() => startPurchase(buy.usd)}
+          onHome={() => setFlow(null)}
+        />
+      </div>
+    )
   if (flow === 'success')
     return (
       <div className="app">
         <Success
-          amount={amount}
+          amount={real ? buy.usd : amount}
+          received={real ? buy.received : undefined}
           onHome={() => {
             if (!firstDone) {
               setFirstDone(true)
@@ -100,7 +169,10 @@ function Main({ plan }) {
   if (flow === 'cancelled')
     return (
       <div className="app">
-        <Cancelled onRetry={() => { setFlow(null); setSheet('sign') }} onHome={() => setFlow(null)} />
+        <Cancelled
+          onRetry={() => { if (real) startPurchase(buy.usd); else { setFlow(null); setSheet('sign') } }}
+          onHome={() => setFlow(null)}
+        />
       </div>
     )
 
@@ -120,7 +192,7 @@ function Main({ plan }) {
             plan={plan}
             purchased={purchased}
             onConnect={() => nav.push('wallet')}
-            onSwipe={() => setSheet(params.get('demo') === 'low' ? 'low' : 'sign')}
+            onSwipe={() => (real ? startPurchase() : setSheet(params.get('demo') === 'low' ? 'low' : 'sign'))}
           />
         ) : tab === 'history' ? (
           <History nav={nav} />
@@ -140,7 +212,15 @@ function Main({ plan }) {
           onCancel={() => { setSheet(null); setFlow('cancelled') }}
         />
       )}
-      {sheet === 'low' && <LowBalanceSheet amount={amount} onClose={() => setSheet(null)} />}
+      {sheet === 'low' && (
+        <LowBalanceSheet
+          amount={amount}
+          balance={low?.balance ?? 4}
+          gas={low?.gas}
+          onClose={() => setSheet(null)}
+          onBuyAvailable={() => { setSheet(null); startPurchase(Math.floor(low?.balance ?? 0)) }}
+        />
+      )}
       {sheet === 'reminders' && <RemindersSheet onClose={() => setSheet(null)} />}
       {sheet === 'currency' && (
         <ChoiceSheet
