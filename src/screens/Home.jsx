@@ -4,7 +4,11 @@ import CoinIcon from '../components/CoinIcon.jsx'
 import { DotNumber } from '../components/DotGrid.jsx'
 import { COINS, PORTFOLIO, NEXT_PURCHASE, GOAL, money, pct } from '../data/mock.js'
 import { usePortfolio, fmtAmount } from '../api/tonapi.js'
-import { usePlans, planShort, nextPurchase, useGoal, perMonthUsd, etaText } from '../data/plans.js'
+import { usePlans, planShort, nextPurchase, useGoal, perMonthUsd, etaText, setPlansFromOnboarding } from '../data/plans.js'
+import { DeviceHero } from '../onboarding/Onboarding.jsx'
+import { PRESETS, perMonth, freqText, coinsText } from '../onboarding/plan.js'
+import { CoinStack } from '../components/CoinIcon.jsx'
+import { haptic } from '../telegram.js'
 import { isDemoWallet } from '../wallet.js'
 import './Home.css'
 
@@ -45,6 +49,9 @@ export default function Home({ nav, wallet, purchased, onSwipe, onConnect }) {
   const goalTarget = demo ? GOAL.target : userGoal
   const goalSaved = demo ? GOAL.saved : total
   const goalPct = goalTarget ? Math.min(100, Math.round((goalSaved / goalTarget) * 100)) : 0
+
+  // кошелёк есть, а планов нет: копилка ждёт первый план
+  if (!demo && !empty && !plans.length) return <EmptyHome nav={nav} />
 
   return (
     <div className="scr scr--tab">
@@ -135,6 +142,44 @@ export default function Home({ nav, wallet, purchased, onSwipe, onConnect }) {
             onDone={() => onSwipe(next)}
           />
         )}
+      </div>
+    </div>
+  )
+}
+
+/* Главная без плана: Kopitron ждёт, пресеты создают план в одно касание */
+function EmptyHome({ nav }) {
+  return (
+    <div className="scr scr--tab">
+      <div className="scr__body home home--empty">
+        <DeviceHero className="home__hero" />
+        <p className="hero__caption home__caption"><span>Kopitron K-01</span> / Ждёт первый план</p>
+        <h1 className="title home__empty-title">Копилка пустая</h1>
+        <p className="lead">Выбери план, и я начну напоминать</p>
+        <div className="plans home__plans">
+          {Object.values(PRESETS).map((p) => (
+            <button key={p.id} type="button" className={`card plan ${p.id === 'balance' ? 'is-selected' : ''}`} onClick={() => { haptic.success(); setPlansFromOnboarding(p) }}>
+              <span className="plan__head">
+                <span className="plan__name">
+                  {p.title}
+                  {p.id === 'balance' && <span className="tag">Рекомендуем</span>}
+                </span>
+              </span>
+              <span className="plan__coins">
+                <CoinStack coins={p.coins} />
+                <span>${p.amount} {freqText(p)} в {coinsText(p.coins)}</span>
+              </span>
+              <span className="plan__month">≈ ${perMonth(p)} в месяц</span>
+            </button>
+          ))}
+          <button type="button" className="card plan plan--own" onClick={() => nav.push('newplan')}>
+            <span>
+              <span className="plan__own-title">Свой план</span>
+              <span className="plan__own-sub">Сам выберу монеты, сумму и день</span>
+            </span>
+            <span className="plan__chevron">›</span>
+          </button>
+        </div>
       </div>
     </div>
   )

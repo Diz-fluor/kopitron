@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { useTonConnectUI } from '@tonconnect/ui-react'
 import MainButton from '../components/MainButton.jsx'
 import KopitronFace from '../components/KopitronFace.jsx'
-import { DcaChart, Diode, DotIcon, SHIELD, WalletGlyph } from '../onboarding/Onboarding.jsx'
+import { useLiveHistory } from './History.jsx'
+import { DcaChart, Diode, DotIcon, SHIELD, WalletGlyph, WalletLogo, useWalletInfo } from '../onboarding/Onboarding.jsx'
 import { shortAddress, useWallet, isDemoWallet } from '../wallet.js'
 import { usePortfolio, fmtAmount } from '../api/tonapi.js'
 import { haptic } from '../telegram.js'
@@ -31,6 +32,11 @@ function SafeCard({ more }) {
 /* Вкладка «Профиль» */
 export function Profile({ nav, settings, openSheet }) {
   const address = useWallet()
+  const info = useWalletInfo()
+  const { items, demo } = useLiveHistory()
+  const buys = items.filter((h) => !h.skipped)
+  const first = buys.length ? new Date(Math.min(...buys.map((h) => h.time ?? Date.now()))) : null
+  const since = demo ? 'копит с 14 сентября, 6 покупок' : !address ? 'кошелёк не подключён' : first ? `копит с ${first.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}, ${buys.length} ${purchasesWord(buys.length)}` : 'первая покупка впереди'
   const user = tgUser()
   const name = user?.first_name ?? 'Дмитрий'
   const rows = [
@@ -49,15 +55,15 @@ export function Profile({ nav, settings, openSheet }) {
           {user?.photo_url ? <img className="me__photo" src={user.photo_url} alt="" /> : <span className="me__photo me__photo--empty">{name[0]}</span>}
           <span>
             <strong className="me__name">{name}</strong>
-            <span className="muted me__sub">копит с 14 сентября, 6 покупок</span>
+            <span className="muted me__sub">{since}</span>
           </span>
         </div>
 
         <button type="button" className="card card--pad wallet-card" onClick={() => nav.push('wallet')}>
           <span className="wallet-card__top">
-            <WalletGlyph kind="telegram" />
+            {address ? <WalletLogo src={info.logo} /> : <WalletGlyph kind="other" />}
             <span className="row__main">
-              <span className="row__title">{address ? 'Кошелёк в Telegram' : 'Кошелёк не подключён'}</span>
+              <span className="row__title">{address ? info.name : 'Кошелёк не подключён'}</span>
               <span className="row__sub">{address ? `${shortAddress(address)}, подключён` : 'Подключение займёт 10 секунд'}</span>
             </span>
             <span className="row__chevron">›</span>
@@ -85,6 +91,7 @@ export function Profile({ nav, settings, openSheet }) {
 /* Профиль / Кошелёк */
 export function WalletScreen({ nav }) {
   const address = useWallet()
+  const info = useWalletInfo()
   const live = usePortfolio(address && !isDemoWallet(address) ? address : null)
   const usdt = live.data ? live.data.usdt?.amount ?? 0 : isDemoWallet(address) ? 48 : null
   const plan = (() => { try { return JSON.parse(localStorage.getItem('kopitron.plan')) } catch { return null } })()
@@ -140,9 +147,9 @@ export function WalletScreen({ nav }) {
         <section className="card card--pad wallet-on">
           <div className="wallet-on__top">
             <span className="chip chip--plain"><i className="chip__dot" />Подключён</span>
-            <WalletGlyph kind="telegram" />
+            <WalletLogo src={info.logo} />
           </div>
-          <strong className="wallet-on__name">Кошелёк в Telegram</strong>
+          <strong className="wallet-on__name">{info.name}</strong>
           <span className="muted wallet-on__addr num">{shortAddress(address)}</span>
           <div className="wallet-on__balance"><span className="muted">Доступно для покупок</span><strong className="num">{usdt == null ? '…' : `${fmtAmount(usdt)} USDT`}</strong></div>
           <span className="muted wallet-on__note">
@@ -281,4 +288,11 @@ export function About() {
       </div>
     </div>
   )
+}
+
+function purchasesWord(n) {
+  const a = n % 10, b = n % 100
+  if (a === 1 && b !== 11) return 'покупка'
+  if (a >= 2 && a <= 4 && (b < 12 || b > 14)) return 'покупки'
+  return 'покупок'
 }

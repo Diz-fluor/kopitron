@@ -4,7 +4,7 @@ import MainButton, { TextButton } from '../components/MainButton.jsx'
 import KopitronFace from '../components/KopitronFace.jsx'
 import CoinIcon, { CoinStack } from '../components/CoinIcon.jsx'
 import { haptic, backButton } from '../telegram.js'
-import { useTonAddress, useTonConnectUI } from '@tonconnect/ui-react'
+import { useTonAddress, useTonConnectUI, useTonWallet } from '@tonconnect/ui-react'
 import { shortAddress } from '../wallet.js'
 import {
   PRESETS, FREQS, DAYS, coinNames, coinsText, perMonth, freqText, dayEach, dayNearest, dayText, firstPurchaseDate, shares,
@@ -85,7 +85,8 @@ function Foot({ children }) {
 
 /* 01 Привет */
 
-function Hello({ go }) {
+/* Рендер K-01: моргает раз в несколько секунд, иногда дважды */
+export function DeviceHero({ className = '' }) {
   const [blink, setBlink] = useState(false)
   const [hasRender, setHasRender] = useState(true)
 
@@ -107,29 +108,36 @@ function Hello({ go }) {
   }, [])
 
   return (
+    <div className={`hero ${className}`}>
+      {hasRender ? (
+        <div className="hero__device">
+          <img
+            src={`${import.meta.env.BASE_URL}kopitron-k01.webp`}
+            alt="Kopitron K-01"
+            onError={() => setHasRender(false)}
+            draggable="false"
+          />
+          <span className={`hero__lid hero__lid--left ${blink ? 'is-closed' : ''}`} />
+          <span className={`hero__lid hero__lid--right ${blink ? 'is-closed' : ''}`} />
+        </div>
+      ) : (
+        <div className="hero__fallback">
+          <KopitronFace emotion={blink ? 'wink' : 'attention'} size={128} />
+        </div>
+      )}
+    </div>
+  )
+}
+
+function Hello({ go }) {
+
+  return (
     <>
       <Head title={<>Привет,<br />я Kopitron</>}>
         Страшно начинать в крипте?<br />Со мной это как откладывать в копилку
       </Head>
 
-      <div className="hero">
-        {hasRender ? (
-          <div className="hero__device">
-            <img
-              src={`${import.meta.env.BASE_URL}kopitron-k01.webp`}
-              alt="Kopitron K-01"
-              onError={() => setHasRender(false)}
-              draggable="false"
-            />
-            <span className={`hero__lid hero__lid--left ${blink ? 'is-closed' : ''}`} />
-            <span className={`hero__lid hero__lid--right ${blink ? 'is-closed' : ''}`} />
-          </div>
-        ) : (
-          <div className="hero__fallback">
-            <KopitronFace emotion={blink ? 'wink' : 'attention'} size={128} />
-          </div>
-        )}
-      </div>
+      <DeviceHero />
 
       <p className="hero__caption">
         <span>Kopitron K-01</span> / Копилка для крипты
@@ -384,6 +392,21 @@ export function DotIcon({ cells, size = 31, color = 'var(--color-accent)' }) {
   )
 }
 
+// Логотип кошелька: подключённого (из TON Connect) или Кошелька в Telegram
+const TG_WALLET_LOGO = 'https://wallet.tg/images/logo-288.png'
+
+export function useWalletInfo() {
+  const w = useTonWallet()
+  const tg = !w || w.appName === 'telegram-wallet' || /wallet/i.test(w.name ?? '') && /telegram/i.test(w.name ?? '')
+  return { name: tg ? 'Кошелёк в Telegram' : w.name ?? 'Кошелёк TON', logo: w?.imageUrl ?? (tg ? TG_WALLET_LOGO : null), tg }
+}
+
+export function WalletLogo({ src, kind = 'telegram' }) {
+  const [broken, setBroken] = useState(false)
+  if (!src || broken) return <WalletGlyph kind={kind} />
+  return <img className="wallet__icon wallet__icon--img" src={src} alt="" onError={() => setBroken(true)} draggable="false" />
+}
+
 export function WalletGlyph({ kind }) {
   // нейтральные значки; настоящие логотипы кошельков добавим отдельно
   return (
@@ -438,7 +461,7 @@ function Wallet({ go, setWallet }) {
 
       <div className="wallets">
         <button type="button" className={`card wallet ${choice === 'telegram' ? 'is-selected' : ''}`} onClick={() => pick('telegram')}>
-          <WalletGlyph kind="telegram" />
+          <WalletLogo src={TG_WALLET_LOGO} />
           <span className="wallet__text">
             <span className="wallet__name">Кошелёк в Telegram</span>
             <span className="wallet__sub wallet__sub--accent">Рекомендуем, уже есть в Telegram</span>

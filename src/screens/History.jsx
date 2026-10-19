@@ -80,7 +80,7 @@ export function History({ nav }) {
         {!wallet && <p className="muted empty-note">Подключи кошелёк, и здесь появятся твои покупки</p>}
         {wallet && loading && <p className="muted empty-note">Загружаем покупки из блокчейна</p>}
         {wallet && !loading && error && !all.length && <p className="muted empty-note">Не получилось загрузить историю. Попробуем ещё раз через минуту</p>}
-        {wallet && !loading && !error && !items.length && <p className="muted empty-note">Покупок пока нет. Первая появится здесь сразу после свайпа</p>}
+        {wallet && !loading && !error && !items.length && <p className="muted empty-note">Покупок пока нет.<br />Первая появится сразу после свайпа</p>}
         {months.map((m) => {
           const list = items.filter((h) => h.month === m)
           const sum = list.filter((h) => !h.skipped).reduce((s, h) => s + h.usd, 0)
