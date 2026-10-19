@@ -103,11 +103,8 @@ function Hello({ go }) {
       <div className="hero">
         {hasRender ? (
           <div className="hero__device">
-            <span className="hero__shadow hero__shadow--soft" />
-            <span className="hero__shadow hero__shadow--contact" />
-            <span className="hero__shadow hero__shadow--cord" />
             <img
-              src={`${import.meta.env.BASE_URL}kopitron-k01.png`}
+              src={`${import.meta.env.BASE_URL}kopitron-k01.webp`}
               alt="Kopitron K-01"
               onError={() => setHasRender(false)}
               draggable="false"
