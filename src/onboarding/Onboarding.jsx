@@ -347,14 +347,15 @@ function CustomPlan({ plan, setPlan, back }) {
 
 /* 04 Кошелёк */
 
-const SHIELD = '1,0 2,0 3,0 4,0 5,0 6,0 7,0 0,1 8,1 0,2 8,2 0,3 5,3 8,3 0,4 2,4 4,4 8,4 1,5 3,5 7,5 2,6 6,6 3,7 5,7 4,8'
+const SHIELD = '1,0 2,0 3,0 4,0 5,0 6,0 7,0 0,1 8,1 0,2 6,2 8,2 0,3 5,3 8,3 0,4 2,4 4,4 8,4 0,5 3,5 8,5 1,6 7,6 2,7 6,7 3,8 4,8 5,8'
 
-function DotIcon({ cells, size = 28, color = 'var(--color-accent)' }) {
+// сетка 9×9: точка 2,8, шаг 3,4, поле 31×31 — как иконка в Figma
+function DotIcon({ cells, size = 31, color = 'var(--color-accent)' }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 32 32" aria-hidden="true" style={{ display: 'block', flexShrink: 0 }}>
+    <svg width={size} height={size} viewBox="0 0 31 31" aria-hidden="true" style={{ display: 'block', flexShrink: 0 }}>
       {cells.split(' ').map((p) => {
         const [x, y] = p.split(',').map(Number)
-        return <circle key={p} cx={1.8 + x * 3.55} cy={1.8 + y * 3.55} r={1.3} fill={color} />
+        return <circle key={p} cx={1.7 + x * 3.4} cy={1.7 + y * 3.4} r={1.4} fill={color} />
       })}
     </svg>
   )
