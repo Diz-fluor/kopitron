@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import KopitronFace from './KopitronFace.jsx'
+import DotArrow from './DotArrow.jsx'
 import { haptic } from '../telegram.js'
 import './Swipe.css'
 
@@ -9,18 +10,6 @@ const KNOB = 56
 const INSET = 4
 const DOT_STEP = 10
 const NEAR_GOAL = 0.85
-
-function DotArrow() {
-  // стрелка из тёмных точек на ползунке
-  const cells = [[0, 2], [1, 2], [2, 2], [3, 2], [4, 2], [5, 2], [6, 2], [4, 0], [5, 1], [5, 3], [4, 4]]
-  return (
-    <svg width="24" height="17" viewBox="0 0 24 17" aria-hidden="true">
-      {cells.map(([x, y]) => (
-        <circle key={`${x}-${y}`} cx={1.5 + x * 3.5} cy={1.5 + y * 3.5} r={1.4} fill="var(--color-text-on-accent)" />
-      ))}
-    </svg>
-  )
-}
 
 export default function Swipe({ label = 'Сдвинь, чтобы положить $10', doneLabel = 'Готово, $10 → Bitcoin', onDone }) {
   const trackRef = useRef(null)

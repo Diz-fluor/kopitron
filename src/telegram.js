@@ -14,6 +14,22 @@ export function initTelegram() {
   } catch {}
 }
 
+// Кнопка «Назад» в шапке Telegram. Возвращает функцию отписки для useEffect.
+export function backButton(handler) {
+  const bb = tg?.BackButton
+  if (!bb) return undefined
+  if (!handler) {
+    bb.hide()
+    return undefined
+  }
+  bb.onClick(handler)
+  bb.show()
+  return () => {
+    bb.offClick(handler)
+    bb.hide()
+  }
+}
+
 // Вибрация: в Telegram через HapticFeedback, в браузере через vibrate, если есть
 export const haptic = {
   light() {
