@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
+import { useTonAddress, useTonWallet } from '@tonconnect/ui-react'
 import MainButton, { TextButton } from '../components/MainButton.jsx'
 import KopitronFace from '../components/KopitronFace.jsx'
 import { haptic } from '../telegram.js'
+import { shortAddress } from '../wallet.js'
 import { COINS, GOAL, NEXT_PURCHASE, money } from '../data/mock.js'
 import './Purchase.css'
 
@@ -44,26 +46,102 @@ export function SignSheet({ amount = 10, onConfirm, onCancel }) {
   )
 }
 
-/* Шторка «Не хватает USDT» */
+// Открыть кошелёк пользователя: Wallet в Telegram или подключённый через TON Connect
+function openWallet(wallet) {
+  const tg = window.Telegram?.WebApp
+  const link = wallet && wallet.appName !== 'telegram-wallet' ? wallet.universalLink : null
+  if (link) {
+    if (tg?.openLink) tg.openLink(link)
+    else window.open(link, '_blank')
+  } else if (tg?.openTelegramLink) tg.openTelegramLink('https://t.me/wallet')
+  else window.open('https://t.me/wallet', '_blank')
+}
+
+/* Шторка «Не хватает USDT» и вторым шагом «Как пополнить кошелёк» */
 export function LowBalanceSheet({ amount = 10, balance = 4, gas, onClose, onBuyAvailable }) {
+  const [step, setStep] = useState('low')
   return (
     <div className="sheet-backdrop" onClick={onClose}>
       <div className="sheet low" onClick={(e) => e.stopPropagation()}>
         <div className="sheet__grip" />
-        <div className="low__face"><KopitronFace emotion="sad" size={56} color="var(--color-accent)" /></div>
-        <h2 className="low__title">{gas ? 'Не хватает Gram на сеть' : 'Не хватает USDT'}</h2>
-        <p className="sheet__text low__text">
-          {gas
-            ? 'Для обмена нужно около 0,3 Gram на комиссию сети. Пополни кошелёк на пару Gram и попробуй снова.'
-            : `В кошельке ${balance} USDT, а для покупки нужно ${amount}. Пополни кошелёк или купи на ту сумму, что есть.`}
-        </p>
-        <div className="low__actions">
-          <MainButton variant="dark" onClick={() => { window.Telegram?.WebApp?.openTelegramLink?.('https://t.me/wallet') ?? window.open('https://t.me/wallet'); onClose() }}>Пополнить кошелёк</MainButton>
-          {!gas && balance >= 1 && (
-            <MainButton variant="dark" arrow={false} center onClick={onBuyAvailable ?? onClose}>Купить на ${balance}</MainButton>
-          )}
-          <button type="button" className="low__skip" onClick={onClose}>Пропустить эту покупку</button>
+        {step === 'guide' ? (
+          <TopUpGuide amount={amount} gas={gas} onBack={() => setStep('low')} />
+        ) : (
+          <>
+            <div className="low__face"><KopitronFace emotion="sad" size={56} color="var(--color-accent)" /></div>
+            <h2 className="low__title">{gas ? 'Не хватает Gram на сеть' : 'Не хватает USDT'}</h2>
+            <p className="sheet__text low__text">
+              {gas
+                ? 'Для обмена нужно около 0,3 Gram на комиссию сети. Пополни кошелёк на пару Gram и попробуй снова.'
+                : `В кошельке ${balance} USDT, а для покупки нужно ${amount}. Пополни кошелёк или купи на ту сумму, что есть.`}
+            </p>
+            <div className="low__actions">
+              <MainButton variant="dark" onClick={() => { haptic.tick(); setStep('guide') }}>Пополнить кошелёк</MainButton>
+              {!gas && balance >= 1 && (
+                <MainButton variant="dark" arrow={false} center onClick={onBuyAvailable ?? onClose}>Купить на ${balance}</MainButton>
+              )}
+              <button type="button" className="low__skip" onClick={onClose}>Пропустить эту покупку</button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+
+/* Как пополнить кошелёк: три шага, адрес с копированием, переход в кошелёк */
+function TopUpGuide({ amount, gas, onBack }) {
+  const address = useTonAddress()
+  const wallet = useTonWallet()
+  const [copied, setCopied] = useState(false)
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(address)
+      haptic.success()
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1500)
+    } catch { /* буфер недоступен: ничего не делаем */ }
+  }
+
+  const steps = [
+    ['01', 'Открой кошелёк', 'Wallet в\u00a0Telegram или тот, что подключён'],
+    ['02', gas ? 'Купи немного Gram' : 'Купи USDT и\u00a0немного Gram', 'Картой или через P2P прямо в\u00a0кошельке. Сеть только TON'],
+    ['03', 'Вернись и сдвинь свайп', 'Баланс обновится сам, обычно за\u00a0минуту'],
+  ]
+
+  return (
+    <div className="topup">
+      <div className="low__face"><KopitronFace emotion="waiting" size={52} color="var(--color-accent)" /></div>
+      <h2 className="low__title">Как пополнить кошелёк</h2>
+      <p className="sheet__text topup__lead">
+        {gas
+          ? <>Нужно около 0,3{'\u00a0'}Gram<br />на{'\u00a0'}комиссию сети</>
+          : <>Нужно {amount}{'\u00a0'}USDT на{'\u00a0'}покупку<br />и{'\u00a0'}0,3{'\u00a0'}Gram на{'\u00a0'}комиссию сети</>}
+      </p>
+      <ol className="topup__steps">
+        {steps.map(([n, title, sub]) => (
+          <li key={n} className="topup__step">
+            <span className="topup__num mono-label">{n}</span>
+            <span className="topup__body">
+              <strong>{title}</strong>
+              <span>{sub}</span>
+            </span>
+          </li>
+        ))}
+      </ol>
+      {address && (
+        <div className="topup__addr">
+          <span className="topup__addr-text">
+            <span className="mono-label">Твой адрес в сети TON</span>
+            <span className="topup__addr-value">{shortAddress(address)}</span>
+          </span>
+          <button type="button" className="topup__copy mono-label" onClick={copy}>{copied ? 'Скопировано' : 'Копировать'}</button>
         </div>
+      )}
+      <div className="low__actions">
+        <MainButton onClick={() => { haptic.tick(); openWallet(wallet) }}>Открыть кошелёк</MainButton>
+        <button type="button" className="low__skip" onClick={onBack}>Назад</button>
       </div>
     </div>
   )
