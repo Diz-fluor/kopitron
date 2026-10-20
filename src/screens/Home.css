@@ -52,7 +52,7 @@
 
 /* Главная без плана */
 .home--empty { gap: 0; }
-.home__hero.hero { flex: 0 0 auto; height: 176px; min-height: 0; margin: 0 -16px; }
+.home__hero.hero { flex: 0 0 auto; height: 200px; min-height: 0; margin: 0 -16px; }
 .home__caption { margin-top: 6px; }
-.home__empty-title { margin-top: 16px; }
+.home__empty-title { margin-top: 12px; }
 .home__plans { margin-top: 14px; }

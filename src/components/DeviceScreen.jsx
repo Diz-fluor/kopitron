@@ -1,18 +1,20 @@
-// Точечный экран K-02 поверх рендера. Сетка 16×16 лежит в той же проекции, что экран на фото:
-// координаты — в пикселях рендера 420×420 (как фрейм «Экспорт · kopitron-k02» в Figma).
+// Точечный экран K-02 поверх рендера. Сетка 18×13 (4:3) лежит в той же проекции, что экран на фото:
+// координаты — в пикселях рендера 427×427 (как фрейм «Экспорт · kopitron-k02» в Figma).
 // Лица — те же, что у KopitronFace (компонент 129:6163), каждая точка лица = блок 2×2.
 
-const SIZE = 420
-const GRID = 16
+const SIZE = 427
+const COLS = 18
+const ROWS = 13
+const PAD = 0.5 // отступ сетки от края стекла, в клетках
 
 // Углы экрана на рендере: верх-лево, верх-право, низ-право, низ-лево
-const TL = [119.5, 91]
-const TR = [312, 100]
-const BR = [312, 327]
-const BL = [119.5, 306]
+const TL = [101.68, 119.6]
+const TR = [349.08, 132.45]
+const BR = [349.28, 317.52]
+const BL = [101.98, 290.5]
 
-const RADIUS = 7 // скругление панели
-const BLEED = 1.6 // панель чуть заходит под рамку, чтобы не просвечивал край рендера
+const RADIUS = 5 // скругление панели, как у стекла на рендере
+const BLEED = 0.3 // панель чуть заходит под рамку, чтобы не просвечивал край стекла
 
 const lerp = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]
 const point = (u, v) => lerp(lerp(TL, TR, u), lerp(BL, BR, u), v)
@@ -32,15 +34,17 @@ const PANEL = [TL, TR, BR, BL]
   .join(' ')
 
 // Сетка точек с размером под перспективу
+const U = (c) => (c + PAD) / (COLS + 2 * PAD)
+const V = (r) => (r + PAD) / (ROWS + 2 * PAD)
 const DOTS = []
-for (let r = 0; r < GRID; r++) {
-  for (let c = 0; c < GRID; c++) {
-    const u = (c + 0.5) / GRID
-    const v = (r + 0.5) / GRID
+for (let r = 0; r < ROWS; r++) {
+  for (let c = 0; c < COLS; c++) {
+    const u = U(c + 0.5)
+    const v = V(r + 0.5)
     const [x, y] = point(u, v)
-    const rx = (dist(point((c + 1) / GRID, v), point(c / GRID, v)) * 0.66) / 2
-    const ry = (dist(point(u, (r + 1) / GRID), point(u, r / GRID)) * 0.62) / 2
-    DOTS.push({ key: r * GRID + c, x, y, rx, ry })
+    const rx = (dist(point(U(c + 1), v), point(U(c), v)) * 0.66) / 2
+    const ry = (dist(point(u, V(r + 1)), point(u, V(r))) * 0.62) / 2
+    DOTS.push({ key: r * COLS + c, x, y, rx, ry })
   }
 }
 
@@ -59,14 +63,14 @@ const FACES = {
   sad: { cells: [...EYES, [2, 2], [3, 2], [4, 2], [1, 3], [5, 3]], color: 'var(--color-text-secondary)' },
 }
 
-// Клетка лица → блок 2×2 на сетке 16×16; лицо по центру экрана.
+// Клетка лица → блок 2×2 на сетке 18×13; лицо по центру экрана.
 // Закрытые глаза — только нижний ряд блока.
 function litCells({ cells, closed }) {
   const on = new Set()
   for (const [j, i] of cells) {
     for (let a = 0; a < 2; a++) {
       if (closed && i === 1 && a === 0) continue
-      for (let b = 0; b < 2; b++) on.add((3 + 2 * i + a) * GRID + (1 + 2 * j + b))
+      for (let b = 0; b < 2; b++) on.add((1 + 2 * i + a) * COLS + (2 + 2 * j + b))
     }
   }
   return on
