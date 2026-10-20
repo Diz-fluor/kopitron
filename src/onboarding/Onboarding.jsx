@@ -418,16 +418,16 @@ export function DotIcon({ cells, size = 31, color = 'var(--color-accent)' }) {
   )
 }
 
-// Логотипы кошельков лежат у нас (public/wallets), чтобы не зависеть от чужих серверов.
-// «Кошелёк в Telegram» — встроенный кошелёк Telegram (app_name "telegram" в списке TON Connect).
+// Логотипы кошельков лежат у нас (public/wallets), как в макете Figma 121:5801.
+// «Кошелёк в Telegram» — Wallet (app_name "telegram-wallet" в списке TON Connect).
 const asset = (f) => `${import.meta.env.BASE_URL}wallets/${f}`
-export const TG_WALLET = 'telegram'
-const TG_WALLET_LOGO = asset('telegram.webp')
-const OTHER_WALLETS = ['tonkeeper', 'mytonwallet', 'tonhub']
+export const TG_WALLET = 'telegram-wallet'
+const TG_WALLET_LOGO = asset('wallet-telegram.svg')
+const TON_LOGO = asset('wallet-ton.svg')
 
 export function useWalletInfo() {
   const w = useTonWallet()
-  const tg = !w || w.appName === TG_WALLET || w.appName === 'telegram-wallet'
+  const tg = !w || w.appName === TG_WALLET
   return { name: tg ? 'Кошелёк в Telegram' : w.name ?? 'Кошелёк TON', logo: tg ? TG_WALLET_LOGO : w?.imageUrl ?? null, tg }
 }
 
@@ -437,16 +437,9 @@ export function WalletLogo({ src, kind = 'telegram' }) {
   return <img className="wallet__icon wallet__icon--img" src={src} alt="" onError={() => setBroken(true)} draggable="false" />
 }
 
-// Значок выбора: Кошелёк в Telegram или стопка популярных TON-кошельков
+// Значок выбора: Wallet в Telegram или логотип TON для остальных кошельков
 export function WalletChoiceIcon({ kind }) {
-  if (kind === 'telegram') return <WalletLogo src={TG_WALLET_LOGO} />
-  return (
-    <span className="wallet__stack" aria-hidden="true">
-      {OTHER_WALLETS.map((n) => (
-        <img key={n} src={asset(`${n}.webp`)} alt="" draggable="false" />
-      ))}
-    </span>
-  )
+  return <WalletLogo src={kind === 'telegram' ? TG_WALLET_LOGO : TON_LOGO} kind={kind} />
 }
 
 // Запасной значок, если картинка не загрузилась
@@ -462,7 +455,7 @@ export function WalletGlyph({ kind }) {
   )
 }
 
-// Открыть подключение: встроенный кошелёк Telegram, при ошибке — общий список TON Connect
+// Открыть подключение: Wallet в Telegram, при ошибке — общий список TON Connect
 export async function connectWallet(tonConnectUI, choice) {
   try {
     if (choice === 'telegram') await tonConnectUI.openSingleWalletModal(TG_WALLET)

@@ -3,7 +3,7 @@ import { useTonConnectUI } from '@tonconnect/ui-react'
 import MainButton from '../components/MainButton.jsx'
 import KopitronFace from '../components/KopitronFace.jsx'
 import { useLiveHistory } from './History.jsx'
-import { DcaChart, Diode, DotIcon, SHIELD, WalletChoiceIcon, WalletGlyph, WalletLogo, connectWallet, useWalletInfo } from '../onboarding/Onboarding.jsx'
+import { DcaChart, Diode, DotIcon, SHIELD, WalletChoiceIcon, WalletLogo, connectWallet, useWalletInfo } from '../onboarding/Onboarding.jsx'
 import { shortAddress, useWallet, isDemoWallet } from '../wallet.js'
 import { usePortfolio, fmtAmount } from '../api/tonapi.js'
 import { haptic } from '../telegram.js'
@@ -61,7 +61,7 @@ export function Profile({ nav, settings, openSheet }) {
 
         <button type="button" className="card card--pad wallet-card" onClick={() => nav.push('wallet')}>
           <span className="wallet-card__top">
-            {address ? <WalletLogo src={info.logo} /> : <WalletGlyph kind="other" />}
+            {address ? <WalletLogo src={info.logo} /> : <WalletChoiceIcon kind="other" />}
             <span className="row__main">
               <span className="row__title">{address ? info.name : 'Кошелёк не подключён'}</span>
               <span className="row__sub">{address ? `${shortAddress(address)}, подключён` : 'Подключение займёт 10 секунд'}</span>

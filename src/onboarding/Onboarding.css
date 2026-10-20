@@ -420,17 +420,6 @@
 .wallet__icon--telegram { background: #2f86f6; }
 .wallet__icon--img { object-fit: cover; background: none; }
 .wallet__icon--other { background: var(--color-surface-nested); }
-.wallet__stack { position: relative; width: 40px; height: 40px; flex-shrink: 0; }
-.wallet__stack img {
-  position: absolute;
-  width: 24px;
-  height: 24px;
-  border-radius: 7px;
-  box-shadow: 0 0 0 2px var(--color-surface);
-}
-.wallet__stack img:nth-child(1) { left: 0; top: 0; }
-.wallet__stack img:nth-child(2) { right: 0; top: 4px; }
-.wallet__stack img:nth-child(3) { left: 8px; bottom: 0; }
 .wallet__text { flex: 1; display: flex; flex-direction: column; gap: 2px; }
 .wallet__name { font-size: 16px; font-weight: 600; }
 .wallet__sub { font-size: 13px; color: var(--color-text-secondary); }
