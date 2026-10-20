@@ -57,3 +57,17 @@
 .home__hero .hero__device { width: min(270px, 100cqw); }
 .home__empty-title { margin-top: 12px; }
 .home__plans { margin-top: 14px; }
+
+/* просадка рынка */
+.drop { display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 14px 12px 16px; border: 0; text-align: left; color: inherit; font: inherit; cursor: pointer; }
+.drop__nest { width: 36px; height: 36px; border-radius: 10px; background: var(--color-surface-sunken); display: grid; place-items: center; flex-shrink: 0; }
+.drop__text { flex: 1; display: flex; flex-direction: column; gap: 3px; }
+.drop__text strong { font-size: 15px; font-weight: 600; }
+.drop__text span { font-size: 13px; color: var(--color-text-secondary); }
+.drop__prices { display: flex; align-items: center; padding: 14px 16px; border-radius: 12px; background: var(--color-surface-sunken); text-align: left; }
+.drop__prices > span { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+.drop__prices > span:last-child { padding-left: 16px; }
+.drop__prices .mono-label { color: var(--color-text-secondary); }
+.drop__prices b { font-family: var(--font-mono); font-size: 18px; font-weight: 600; }
+.drop__prices i { width: 1px; align-self: stretch; background: var(--color-surface-nested); }
+.drop__note { margin: 10px 0 14px; font-size: 12px; color: var(--color-text-secondary); }

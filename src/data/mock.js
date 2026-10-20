@@ -2,9 +2,9 @@
 // Числа как на макетах в Figma.
 
 export const COINS = {
-  btc: { id: 'btc', name: 'Bitcoin', ticker: 'BTC', price: 90080 },
-  eth: { id: 'eth', name: 'Ethereum', ticker: 'ETH', price: 2468 },
-  gram: { id: 'gram', name: 'Gram', ticker: 'GRAM', price: 1.5 },
+  btc: { id: 'btc', name: 'Bitcoin', ticker: 'BTC', price: 90080, gen: 'биткоина' },
+  eth: { id: 'eth', name: 'Ethereum', ticker: 'ETH', price: 2468, gen: 'эфира' },
+  gram: { id: 'gram', name: 'Gram', ticker: 'GRAM', price: 1.5, gen: 'Gram' },
 }
 
 export const PORTFOLIO = {
