@@ -3,7 +3,7 @@ import { useTonConnectUI } from '@tonconnect/ui-react'
 import MainButton from '../components/MainButton.jsx'
 import KopitronFace from '../components/KopitronFace.jsx'
 import { useLiveHistory } from './History.jsx'
-import { DcaChart, Diode, DotIcon, SHIELD, WalletGlyph, WalletLogo, useWalletInfo } from '../onboarding/Onboarding.jsx'
+import { DcaChart, Diode, DotIcon, SHIELD, WalletChoiceIcon, WalletGlyph, WalletLogo, connectWallet, useWalletInfo } from '../onboarding/Onboarding.jsx'
 import { shortAddress, useWallet, isDemoWallet } from '../wallet.js'
 import { usePortfolio, fmtAmount } from '../api/tonapi.js'
 import { haptic } from '../telegram.js'
@@ -108,10 +108,10 @@ export function WalletScreen({ nav }) {
           <div className="wallets">
             {[
               ['telegram', 'Кошелёк в Telegram', 'Рекомендуем, уже есть в Telegram'],
-              ['other', 'Другой кошелёк TON', 'Tonkeeper, MyTonWallet и другие через TON Connect'],
+              ['other', 'Другой кошелёк TON', 'Tonkeeper, MyTonWallet и другие'],
             ].map(([id, t, sub]) => (
               <button key={id} type="button" className={`card wallet ${choice === id ? 'is-selected' : ''}`} onClick={() => { haptic.tick(); setChoice(id) }}>
-                <WalletGlyph kind={id} />
+                <WalletChoiceIcon kind={id} />
                 <span className="wallet__text">
                   <span className="wallet__name">{t}</span>
                   <span className={`wallet__sub ${id === 'telegram' ? 'wallet__sub--accent' : ''}`}>{sub}</span>
@@ -124,14 +124,7 @@ export function WalletScreen({ nav }) {
         </div>
         <div className="scr__foot scr__foot--bottom">
           <MainButton
-            onClick={async () => {
-              try {
-                if (choice === 'telegram') await tonConnectUI.openSingleWalletModal('telegram-wallet')
-                else await tonConnectUI.openModal()
-              } catch {
-                await tonConnectUI.openModal()
-              }
-            }}
+            onClick={() => connectWallet(tonConnectUI, choice)}
           >
             Подключить
           </MainButton>

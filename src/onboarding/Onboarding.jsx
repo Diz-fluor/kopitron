@@ -418,13 +418,17 @@ export function DotIcon({ cells, size = 31, color = 'var(--color-accent)' }) {
   )
 }
 
-// Логотип кошелька: подключённого (из TON Connect) или Кошелька в Telegram
-const TG_WALLET_LOGO = 'https://wallet.tg/images/logo-288.png'
+// Логотипы кошельков лежат у нас (public/wallets), чтобы не зависеть от чужих серверов.
+// «Кошелёк в Telegram» — встроенный кошелёк Telegram (app_name "telegram" в списке TON Connect).
+const asset = (f) => `${import.meta.env.BASE_URL}wallets/${f}`
+export const TG_WALLET = 'telegram'
+const TG_WALLET_LOGO = asset('telegram.webp')
+const OTHER_WALLETS = ['tonkeeper', 'mytonwallet', 'tonhub']
 
 export function useWalletInfo() {
   const w = useTonWallet()
-  const tg = !w || w.appName === 'telegram-wallet' || /wallet/i.test(w.name ?? '') && /telegram/i.test(w.name ?? '')
-  return { name: tg ? 'Кошелёк в Telegram' : w.name ?? 'Кошелёк TON', logo: w?.imageUrl ?? (tg ? TG_WALLET_LOGO : null), tg }
+  const tg = !w || w.appName === TG_WALLET || w.appName === 'telegram-wallet'
+  return { name: tg ? 'Кошелёк в Telegram' : w.name ?? 'Кошелёк TON', logo: tg ? TG_WALLET_LOGO : w?.imageUrl ?? null, tg }
 }
 
 export function WalletLogo({ src, kind = 'telegram' }) {
@@ -433,8 +437,20 @@ export function WalletLogo({ src, kind = 'telegram' }) {
   return <img className="wallet__icon wallet__icon--img" src={src} alt="" onError={() => setBroken(true)} draggable="false" />
 }
 
+// Значок выбора: Кошелёк в Telegram или стопка популярных TON-кошельков
+export function WalletChoiceIcon({ kind }) {
+  if (kind === 'telegram') return <WalletLogo src={TG_WALLET_LOGO} />
+  return (
+    <span className="wallet__stack" aria-hidden="true">
+      {OTHER_WALLETS.map((n) => (
+        <img key={n} src={asset(`${n}.webp`)} alt="" draggable="false" />
+      ))}
+    </span>
+  )
+}
+
+// Запасной значок, если картинка не загрузилась
 export function WalletGlyph({ kind }) {
-  // нейтральные значки; настоящие логотипы кошельков добавим отдельно
   return (
     <span className={`wallet__icon wallet__icon--${kind}`} aria-hidden="true">
       {kind === 'telegram' ? (
@@ -444,6 +460,16 @@ export function WalletGlyph({ kind }) {
       )}
     </span>
   )
+}
+
+// Открыть подключение: встроенный кошелёк Telegram, при ошибке — общий список TON Connect
+export async function connectWallet(tonConnectUI, choice) {
+  try {
+    if (choice === 'telegram') await tonConnectUI.openSingleWalletModal(TG_WALLET)
+    else await tonConnectUI.openModal()
+  } catch {
+    await tonConnectUI.openModal()
+  }
 }
 
 function Wallet({ go, setWallet }) {
@@ -469,12 +495,7 @@ function Wallet({ go, setWallet }) {
       return
     }
     waitingRef.current = true
-    try {
-      if (choice === 'telegram') await tonConnectUI.openSingleWalletModal('telegram-wallet')
-      else await tonConnectUI.openModal()
-    } catch {
-      await tonConnectUI.openModal()
-    }
+    await connectWallet(tonConnectUI, choice)
   }
   const pick = (w) => {
     haptic.tick()
@@ -487,7 +508,7 @@ function Wallet({ go, setWallet }) {
 
       <div className="wallets">
         <button type="button" className={`card wallet ${choice === 'telegram' ? 'is-selected' : ''}`} onClick={() => pick('telegram')}>
-          <WalletLogo src={TG_WALLET_LOGO} />
+          <WalletChoiceIcon kind="telegram" />
           <span className="wallet__text">
             <span className="wallet__name">Кошелёк в Telegram</span>
             <span className="wallet__sub wallet__sub--accent">Рекомендуем, уже есть в Telegram</span>
@@ -495,10 +516,10 @@ function Wallet({ go, setWallet }) {
           <Diode on={choice === 'telegram'} />
         </button>
         <button type="button" className={`card wallet ${choice === 'other' ? 'is-selected' : ''}`} onClick={() => pick('other')}>
-          <WalletGlyph kind="other" />
+          <WalletChoiceIcon kind="other" />
           <span className="wallet__text">
             <span className="wallet__name">Другой кошелёк TON</span>
-            <span className="wallet__sub">Через TON Connect</span>
+            <span className="wallet__sub">Tonkeeper, MyTonWallet и другие</span>
           </span>
           <Diode on={choice === 'other'} />
         </button>
