@@ -99,8 +99,8 @@
 }
 .hero__device {
   position: relative;
-  width: min(100cqw, 100cqh * 812 / 784, 406px);
-  aspect-ratio: 812 / 784;
+  width: min(100cqw, 100cqh, 406px);
+  aspect-ratio: 1;
   animation: device-in 600ms cubic-bezier(0.2, 0.8, 0.2, 1) 80ms both;
 }
 @keyframes device-in { from { opacity: 0; transform: translateY(10px) scale(0.98); } }
@@ -112,30 +112,18 @@
   object-fit: contain;
   pointer-events: none;
 }
-/* веки: на мгновение гасят глаза на дисплее */
-.hero__lid {
+/* точечный экран K-02 поверх рендера */
+.device-screen {
   position: absolute;
-  width: 7.4%;
-  height: 7.6%;
-  background: radial-gradient(closest-side, #08090a 70%, rgba(8, 9, 10, 0));
-  opacity: 0;
-  transition: opacity 50ms ease-in;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
 }
-/* закрытый глаз: короткая светящаяся черта */
-.hero__lid::after {
-  content: '';
-  position: absolute;
-  left: 30%;
-  right: 30%;
-  top: 46%;
-  height: 9%;
-  border-radius: 2px;
-  background: #ff8a3d;
-  box-shadow: 0 0 4px 1px rgba(255, 120, 40, 0.7);
+.device-screen__dot { transition: fill 160ms ease; }
+@media (prefers-reduced-motion: reduce) {
+  .device-screen__dot { transition: none; }
 }
-.hero__lid--left { left: 35.4%; top: 28.2%; }
-.hero__lid--right { left: 47.5%; top: 28.6%; }
-.hero__lid.is-closed { opacity: 1; }
 
 .hero__fallback {
   width: 180px;
