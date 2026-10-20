@@ -1,3 +1,4 @@
+import LegalBody from '../components/LegalBody.jsx'
 import { useState } from 'react'
 import { useTonConnectUI } from '@tonconnect/ui-react'
 import MainButton from '../components/MainButton.jsx'
@@ -261,7 +262,7 @@ export function Support() {
 }
 
 /* О Kopitron */
-export function About() {
+export function About({ nav }) {
   return (
     <div className="scr">
       <div className="scr__body">
@@ -274,8 +275,8 @@ export function About() {
         <section className="card list settings">
           <div className="row"><span className="row__main row__title--set">Версия</span><span className="muted">0.1</span></div>
           <div className="row"><span className="row__main row__title--set">Комиссия Kopitron</span><span className="muted">0,25%</span></div>
-          <button type="button" className="row"><span className="row__main row__title--set">Условия использования</span><span className="row__chevron">›</span></button>
-          <button type="button" className="row"><span className="row__main row__title--set">Конфиденциальность</span><span className="row__chevron">›</span></button>
+          <button type="button" className="row" onClick={() => nav.push('legal', { doc: 'terms' })}><span className="row__main row__title--set">Условия использования</span><span className="row__chevron">›</span></button>
+          <button type="button" className="row" onClick={() => nav.push('legal', { doc: 'privacy' })}><span className="row__main row__title--set">Конфиденциальность</span><span className="row__chevron">›</span></button>
         </section>
         <p className="muted small-note">Kopitron не хранит деньги и ключи. Каждую покупку ты подтверждаешь сам в своём кошельке</p>
       </div>
@@ -288,4 +289,14 @@ function purchasesWord(n) {
   if (a === 1 && b !== 11) return 'покупка'
   if (a >= 2 && a <= 4 && (b < 12 || b > 14)) return 'покупки'
   return 'покупок'
+}
+
+export function Legal({ doc }) {
+  return (
+    <div className="scr">
+      <div className="scr__body">
+        <LegalBody doc={doc} />
+      </div>
+    </div>
+  )
 }

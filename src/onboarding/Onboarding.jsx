@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import MainButton, { TextButton } from '../components/MainButton.jsx'
 import KopitronFace from '../components/KopitronFace.jsx'
 import DeviceScreen from '../components/DeviceScreen.jsx'
+import LegalBody from '../components/LegalBody.jsx'
 import CoinIcon, { CoinStack } from '../components/CoinIcon.jsx'
 import { haptic, backButton } from '../telegram.js'
 import { useTonAddress, useTonConnectUI, useTonWallet } from '@tonconnect/ui-react'
@@ -467,6 +468,7 @@ export async function connectWallet(tonConnectUI, choice) {
 
 function Wallet({ go, setWallet }) {
   const [choice, setChoice] = useState('telegram')
+  const [legal, setLegal] = useState(null)
   const [tonConnectUI] = useTonConnectUI()
   const address = useTonAddress()
   const waitingRef = useRef(false)
@@ -528,6 +530,22 @@ function Wallet({ go, setWallet }) {
           <li>Каждую покупку подтверждаешь сам</li>
         </ul>
       </section>
+
+      <p className="legal-note">
+        Подключая кошелёк, ты принимаешь{' '}
+        <button type="button" onClick={() => setLegal('terms')}>Условия</button> и{' '}
+        <button type="button" onClick={() => setLegal('privacy')}>Политику конфиденциальности</button>
+      </p>
+
+      {legal && (
+        <div className="sheet-backdrop" onClick={() => setLegal(null)}>
+          <div className="sheet legal-sheet" onClick={(e) => e.stopPropagation()}>
+            <div className="sheet__grip" />
+            <LegalBody doc={legal} />
+            <MainButton variant="dark" arrow={false} center onClick={() => setLegal(null)}>Понятно</MainButton>
+          </div>
+        </div>
+      )}
 
       <Foot>
         <MainButton onClick={connect}>{address ? 'Дальше' : 'Подключить'}</MainButton>

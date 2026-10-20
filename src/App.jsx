@@ -6,7 +6,7 @@ import Home from './screens/Home.jsx'
 import { History, PurchaseDetails } from './screens/History.jsx'
 import Coin from './screens/Coin.jsx'
 import { Goals, PlanEdit, NewPlan, RemindersSheet } from './screens/Goals.jsx'
-import { Profile, WalletScreen, ChoiceSheet, Dca, Support, About } from './screens/Profile.jsx'
+import { Profile, WalletScreen, ChoiceSheet, Dca, Support, About, Legal } from './screens/Profile.jsx'
 import { SignSheet, LowBalanceSheet, Waiting, Success, SetGoal, Cancelled, SignPending, Quoting, fmtCoin } from './screens/Purchase.jsx'
 import { useTonConnectUI } from '@tonconnect/ui-react'
 import { usePortfolio } from './api/tonapi.js'
@@ -40,6 +40,7 @@ const SCREENS = {
   dca: { C: Dca },
   support: { C: Support },
   about: { C: About },
+  legal: { C: Legal },
 }
 
 export default function App() {
