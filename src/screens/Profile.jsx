@@ -276,7 +276,7 @@ export function About() {
         <section className="card about-hero">
           <KopitronFace emotion="joy" size={88} />
           <strong>Копить в крипте так же просто, как откладывать в копилку</strong>
-          <span className="label">Kopitron K-01 / Копилка для крипты</span>
+          <span className="label">Kopitron K-02 / Копилка для крипты</span>
         </section>
         <section className="card list settings">
           <div className="row"><span className="row__main row__title--set">Версия</span><span className="muted">0.1</span></div>

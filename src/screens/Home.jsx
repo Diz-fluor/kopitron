@@ -153,7 +153,7 @@ function EmptyHome({ nav }) {
     <div className="scr scr--tab">
       <div className="scr__body home home--empty">
         <DeviceHero className="home__hero" />
-        <p className="hero__caption home__caption"><span>Kopitron K-01</span> / Ждёт первый план</p>
+        <p className="hero__caption home__caption"><span>Kopitron K-02</span> / Ждёт первый план</p>
         <h1 className="title home__empty-title">Копилка пустая</h1>
         <p className="lead">Выбери план, и я начну напоминать</p>
         <div className="plans home__plans">

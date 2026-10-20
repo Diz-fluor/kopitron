@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import MainButton, { TextButton } from '../components/MainButton.jsx'
 import KopitronFace from '../components/KopitronFace.jsx'
+import DeviceScreen from '../components/DeviceScreen.jsx'
 import CoinIcon, { CoinStack } from '../components/CoinIcon.jsx'
 import { haptic, backButton } from '../telegram.js'
 import { useTonAddress, useTonConnectUI, useTonWallet } from '@tonconnect/ui-react'
@@ -85,44 +86,69 @@ function Foot({ children }) {
 
 /* 01 Привет */
 
-/* Рендер K-01: моргает раз в несколько секунд, иногда дважды */
-export function DeviceHero({ className = '' }) {
-  const [blink, setBlink] = useState(false)
+// Интро на онбординге: спит, просыпается, моргает, подмигивает, радуется
+const INTRO = [
+  ['sleep', 1400],
+  ['awake', 900],
+  ['blink', 140],
+  ['awake', 800],
+  ['wink', 700],
+  ['joy', 1600],
+]
+
+/* Рендер K-02 с живым точечным экраном. intro — проиграть знакомство, потом только моргать */
+export function DeviceHero({ className = '', intro = false }) {
+  const [emotion, setEmotion] = useState(intro ? 'sleep' : 'awake')
   const [hasRender, setHasRender] = useState(true)
 
-  // Kopitron моргает раз в несколько секунд, иногда дважды
   useEffect(() => {
-    let t1, t2
-    const loop = () => {
-      t1 = setTimeout(() => {
-        setBlink(true)
-        t2 = setTimeout(() => {
-          setBlink(false)
-          if (Math.random() < 0.3) setTimeout(() => { setBlink(true); setTimeout(() => setBlink(false), 130) }, 180)
-          loop()
+    const timers = new Set()
+    const later = (fn, ms) => {
+      const t = setTimeout(() => { timers.delete(t); fn() }, ms)
+      timers.add(t)
+    }
+    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+
+    // Моргает раз в несколько секунд, иногда дважды
+    const blinkLoop = () => {
+      later(() => {
+        setEmotion('blink')
+        later(() => {
+          setEmotion('awake')
+          if (Math.random() < 0.3) {
+            later(() => { setEmotion('blink'); later(() => setEmotion('awake'), 130) }, 180)
+          }
+          blinkLoop()
         }, 140)
       }, 2600 + Math.random() * 2400)
     }
-    t1 = setTimeout(loop, 600)
-    return () => { clearTimeout(t1); clearTimeout(t2) }
-  }, [])
+
+    if (intro && !reduce) {
+      let at = 0
+      INTRO.forEach(([e, ms]) => { later(() => setEmotion(e), at); at += ms })
+      later(() => { setEmotion('awake'); blinkLoop() }, at)
+    } else {
+      setEmotion('awake')
+      if (!reduce) blinkLoop()
+    }
+    return () => timers.forEach(clearTimeout)
+  }, [intro])
 
   return (
     <div className={`hero ${className}`}>
       {hasRender ? (
         <div className="hero__device">
           <img
-            src={`${import.meta.env.BASE_URL}kopitron-k01.webp`}
-            alt="Kopitron K-01"
+            src={`${import.meta.env.BASE_URL}kopitron-k02.webp`}
+            alt="Kopitron K-02"
             onError={() => setHasRender(false)}
             draggable="false"
           />
-          <span className={`hero__lid hero__lid--left ${blink ? 'is-closed' : ''}`} />
-          <span className={`hero__lid hero__lid--right ${blink ? 'is-closed' : ''}`} />
+          <DeviceScreen emotion={emotion} />
         </div>
       ) : (
         <div className="hero__fallback">
-          <KopitronFace emotion={blink ? 'wink' : 'attention'} size={128} />
+          <KopitronFace emotion={emotion === 'blink' ? 'wink' : 'attention'} size={128} />
         </div>
       )}
     </div>
@@ -137,10 +163,10 @@ function Hello({ go }) {
         Страшно начинать в крипте?<br />Со мной это как откладывать в копилку
       </Head>
 
-      <DeviceHero />
+      <DeviceHero intro />
 
       <p className="hero__caption">
-        <span>Kopitron K-01</span> / Копилка для крипты
+        <span>Kopitron K-02</span> / Копилка для крипты
       </p>
 
       <Foot>
