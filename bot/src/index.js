@@ -27,7 +27,7 @@ async function sendWelcome(env, chatId) {
     photo: `${env.ASSETS_URL}welcome.jpg?v=3`, // версия в адресе: Telegram кэширует фото по ссылке
     parse_mode: 'HTML',
     caption: [
-      '<b>Привет, я Kopitron</b>',
+      '<b>Привет, я Kopitron, твоя криптокопилка</b>',
       '',
       'Копить в крипте так же просто, как откладывать в копилку.',
       'Раз в неделю напомню, тебе останется сдвинуть ползунок.',
