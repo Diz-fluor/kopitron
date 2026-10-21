@@ -14,7 +14,7 @@ import { DeviceHero } from '../onboarding/Onboarding.jsx'
 import { PRESETS, perMonth, freqText, coinsText } from '../onboarding/plan.js'
 import { CoinStack } from '../components/CoinIcon.jsx'
 import { haptic } from '../telegram.js'
-import { isDemoWallet } from '../wallet.js'
+import { isDemoWallet, isPreview } from '../wallet.js'
 import './Home.css'
 import Sheet from '../components/Sheet.jsx'
 
@@ -80,6 +80,16 @@ export default function Home({ nav, wallet, purchased, onSwipe, onConnect, onRem
             </span>
           )}
         </header>
+
+        {demo && isPreview() && (
+          <button type="button" className="card drop preview-note" onClick={() => { haptic.tick(); onConnect?.() }}>
+            <span className="drop__text">
+              <strong>Это пример</strong>
+              <span>Подключи кошелёк, чтобы начать</span>
+            </span>
+            <span className="row__chevron">›</span>
+          </button>
+        )}
 
         {raise.pending && (
           <div className="card drop raise-note">

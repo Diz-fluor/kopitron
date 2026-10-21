@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useWallet } from './wallet.js'
+import { useWallet, isPreview } from './wallet.js'
 import Onboarding from './onboarding/Onboarding.jsx'
 import TabBar from './components/TabBar.jsx'
 import Home from './screens/Home.jsx'
@@ -233,7 +233,7 @@ function Main({ plan }) {
             purchased={purchased}
             onConnect={() => nav.push('wallet')}
             onReminders={() => setSheet('reminders')}
-            onSwipe={(next) => (real ? startPurchase(next.amount, next.coins) : setSheet(params.get('demo') === 'low' ? 'low' : 'sign'))}
+            onSwipe={(next) => (real ? startPurchase(next.amount, next.coins) : isPreview() ? nav.push('wallet') : setSheet(params.get('demo') === 'low' ? 'low' : 'sign'))}
           />
         ) : tab === 'history' ? (
           <History nav={nav} />

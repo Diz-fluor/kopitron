@@ -476,3 +476,6 @@
 .onb__screen::-webkit-scrollbar { display: none; }
 
 .table dd.is-mono { font-family: var(--font-mono); font-size: 14px; }
+
+/* известные механизмы под фактами о доверии */
+.safe__known { margin: 12px 0 0; font-size: 13px; color: var(--color-text-secondary); }

@@ -5,7 +5,7 @@ import MainButton from '../components/MainButton.jsx'
 import KopitronFace from '../components/KopitronFace.jsx'
 import { useLiveHistory } from './History.jsx'
 import { DcaChart, Diode, DotIcon, SHIELD, WalletChoiceIcon, WalletLogo, connectWallet, useWalletInfo } from '../onboarding/Onboarding.jsx'
-import { shortAddress, useWallet, isDemoWallet } from '../wallet.js'
+import { shortAddress, useWallet, isDemoWallet, isPreview } from '../wallet.js'
 import { usePortfolio, fmtAmount } from '../api/tonapi.js'
 import { haptic } from '../telegram.js'
 import './Profile.css'
@@ -34,7 +34,8 @@ function SafeCard({ more }) {
 
 /* Вкладка «Профиль» */
 export function Profile({ nav, settings, openSheet }) {
-  const address = useWallet()
+  const walletAddr = useWallet()
+  const address = isPreview() && isDemoWallet(walletAddr) ? '' : walletAddr
   const info = useWalletInfo()
   const { items, demo } = useLiveHistory()
   const buys = items.filter((h) => !h.skipped)
@@ -94,7 +95,8 @@ export function Profile({ nav, settings, openSheet }) {
 
 /* Профиль / Кошелёк */
 export function WalletScreen({ nav }) {
-  const address = useWallet()
+  const walletAddr = useWallet()
+  const address = isPreview() && isDemoWallet(walletAddr) ? '' : walletAddr
   const info = useWalletInfo()
   const live = usePortfolio(address && !isDemoWallet(address) ? address : null)
   const usdt = live.data ? live.data.usdt?.amount ?? 0 : isDemoWallet(address) ? 48 : null

@@ -7,7 +7,7 @@ import LegalBody from '../components/LegalBody.jsx'
 import CoinIcon, { CoinStack } from '../components/CoinIcon.jsx'
 import { haptic, backButton } from '../telegram.js'
 import { useTonAddress, useTonConnectUI, useTonWallet } from '@tonconnect/ui-react'
-import { shortAddress } from '../wallet.js'
+import { shortAddress, startPreview } from '../wallet.js'
 import {
   PRESETS, FREQS, DAYS, coinNames, coinsText, perMonth, freqText, dayEach, dayNearest, dayText, firstPurchaseDate, shares,
 } from './plan.js'
@@ -524,12 +524,14 @@ function Wallet({ go, setWallet }) {
       <section className="card safe">
         <div className="safe__head">
           <DotIcon cells={SHIELD} />
-          <strong>Это безопасно</strong>
+          <strong>Что видит Kopitron</strong>
         </div>
         <ul className="bullets bullets--small">
-          <li>Деньги и ключи остаются у тебя</li>
-          <li>Каждую покупку подтверждаешь сам</li>
+          <li>Только адрес кошелька</li>
+          <li>Без твоей подписи ничего не&nbsp;спишется</li>
+          <li>Отключить можно в&nbsp;любой момент</li>
         </ul>
+        <p className="safe__known">Через TON Connect и&nbsp;STON.fi</p>
       </section>
 
       <p className="legal-note">
@@ -547,14 +549,18 @@ function Wallet({ go, setWallet }) {
 
       <Foot>
         <MainButton onClick={connect}>{address ? 'Дальше' : 'Подключить'}</MainButton>
-        <TextButton
+        <MainButton
+          variant="dark"
+          arrow={false}
+          center
           onClick={() => {
             setWallet(null)
+            startPreview()
             go('done')
           }}
         >
-          Сначала осмотрюсь
-        </TextButton>
+          Посмотреть без кошелька
+        </MainButton>
       </Foot>
     </>
   )
