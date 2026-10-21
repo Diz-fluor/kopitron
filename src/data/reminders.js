@@ -1,10 +1,10 @@
-// Настройки напоминаний: общий выключатель, монеты без напоминаний и время.
+// Настройки напоминаний: общий выключатель, монеты без напоминаний, время и напоминание накануне.
 // Пока храним в браузере, потом переедут в базу на Cloudflare вместе с планами,
 // чтобы бот присылал сообщения по этим настройкам.
 import { useSyncExternalStore } from 'react'
 
 const KEY = 'kopitron.reminders'
-const DEFAULT = { on: true, off: [], time: '09:00' }
+const DEFAULT = { on: true, off: [], time: '09:00', dayBefore: true }
 const listeners = new Set()
 
 const read = () => {
@@ -22,6 +22,7 @@ const write = (next) => {
 export const setRemindersOn = (on) => write({ ...state, on })
 export const setCoinReminder = (coin, on) => write({ ...state, off: on ? state.off.filter((c) => c !== coin) : [...new Set([...state.off, coin])] })
 export const setReminderTime = (time) => write({ ...state, time })
+export const setDayBefore = (dayBefore) => write({ ...state, dayBefore })
 
 /* Напоминание по монете включено: общий выключатель и сама монета */
 export const remindsAbout = (s, coin) => s.on && !s.off.includes(coin)

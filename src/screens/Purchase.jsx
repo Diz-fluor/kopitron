@@ -306,6 +306,36 @@ export function SetGoal({ onSave, onSkip, first = true, initial }) {
   )
 }
 
+const buysWord = (n) => (n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? 'покупки' : 'покупок')
+
+/* 06b «Добавим $5?»: после нескольких покупок подряд, со следующей покупки, с отменой */
+export function RaiseOffer({ streak, options, onAccept, onSkip }) {
+  const [pick, setPick] = useState(0)
+  const o = options[pick]
+  return (
+    <div className="scr">
+      <div className="scr__body">
+        <span className="label accent">После {streak} покупок подряд</span>
+        <h1 className="title">Добавим ${options[0].add}?</h1>
+        <p className="lead">{streak} {buysWord(streak)} подряд по&nbsp;${o.from}. Если было легко, можно чуть больше.</p>
+        <div className="goal-input raise__value"><span className="num">${o.to}</span></div>
+        <div className="goal-chips">
+          {options.map((x, i) => (
+            <button key={x.steps} type="button" className={`chip chip--btn ${pick === i ? 'is-on' : ''}`} onClick={() => { haptic.tick(); setPick(i) }}>
+              +${x.add}
+            </button>
+          ))}
+        </div>
+        <p className="muted goal-hint">Со&nbsp;следующей покупки. За&nbsp;год это +${o.perYear} в&nbsp;копилке. Вернуть ${o.from} можно в&nbsp;одно касание.</p>
+      </div>
+      <div className="scr__foot scr__foot--bottom">
+        <MainButton onClick={() => { haptic.success(); onAccept(o) }}>Добавить ${o.add}</MainButton>
+        <TextButton onClick={onSkip}>Оставить ${o.from}</TextButton>
+      </div>
+    </div>
+  )
+}
+
 /* 04b Подпись отклонена */
 export function Cancelled({ onRetry, onHome, title = 'Покупка отменена', sub = 'Подпись отклонена в кошельке', note = 'Можно попробовать снова или купить в следующую пятницу' }) {
   return (

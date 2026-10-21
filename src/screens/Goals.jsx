@@ -36,7 +36,7 @@ function useLivePlans() {
 }
 import './Goals.css'
 import Sheet from '../components/Sheet.jsx'
-import { useReminders, setRemindersOn, setCoinReminder, setReminderTime, remindsAbout } from '../data/reminders.js'
+import { useReminders, setRemindersOn, setCoinReminder, setReminderTime, setDayBefore, remindsAbout } from '../data/reminders.js'
 
 export const PLANS = [
   { coin: 'btc', amount: 10, freq: 'week', day: 4, title: '$10 каждую пятницу', goal: '0,01 BTC', saved: '0,0047 BTC', pct: 47, eta: 'к маю 2027', when: 'пт, 09:00' },
@@ -175,11 +175,18 @@ export function PlanEdit({ coin = 'btc', nav }) {
           <strong>≈ ${perMonth(p.amount, p.freq)} в месяц</strong>
           <span>на {name}</span>
         </div>
+        {/* пауза на виду: план можно остановить и вернуть в одно касание */}
+        <div className="toggle-card plan-pause">
+          <span className="plan-pause__text">
+            <strong>Пауза</strong>
+            {p.paused && <span className="muted">Напоминаний и покупок не будет</span>}
+          </span>
+          <Toggle on={!!p.paused} onChange={(v) => setP({ ...p, paused: v })} />
+        </div>
       </div>
       <div className="scr__foot scr__foot--bottom">
         <MainButton onClick={() => save()}>Сохранить</MainButton>
         <div className="plan-actions">
-          <button type="button" className="muted" onClick={() => save({ paused: !p.paused })}>{p.paused ? 'Продолжить' : 'Пауза'}</button>
           <button type="button" className="accent" onClick={() => { if (!demo) deletePlan(coin); haptic.tick(); nav.back() }}>Удалить план</button>
         </div>
       </div>
@@ -259,7 +266,7 @@ export function RemindersSheet({ onClose }) {
   return (
     <Sheet onClose={onClose}>
       <h2 className="sheet__title">Напоминания</h2>
-      <p className="sheet__text">Kopitron пришлёт сообщение в&nbsp;день покупки. Покупку ты подтверждаешь сам, в&nbsp;один свайп.</p>
+      <p className="sheet__text">Kopitron пришлёт сообщение в&nbsp;день покупки, а&nbsp;накануне вечером напомнит пополнить USDT. Покупку ты подтверждаешь сам, в&nbsp;один свайп.</p>
       <div className="toggle-card">
         <strong>Напоминать о&nbsp;покупках</strong>
         <Toggle on={r.on} onChange={setRemindersOn} />
@@ -283,6 +290,10 @@ export function RemindersSheet({ onClose }) {
         <strong>{r.time} ›</strong>
         <input type="time" value={r.time} disabled={!r.on} onChange={(e) => e.target.value && setReminderTime(e.target.value)} aria-label="Время напоминания" />
       </label>
+      <div className={`toggle-card reminders__before ${r.on ? '' : 'is-off'}`}>
+        <strong>Напомнить накануне</strong>
+        <Toggle on={r.on && r.dayBefore} onChange={setDayBefore} />
+      </div>
       <MainButton onClick={onClose}>Готово</MainButton>
     </Sheet>
   )

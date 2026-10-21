@@ -9,6 +9,7 @@ import { COINS, PORTFOLIO, NEXT_PURCHASE, GOAL, money, pct } from '../data/mock.
 import { usePortfolio, fmtAmount } from '../api/tonapi.js'
 import { usePlans, planShort, nextPurchase, useGoal, perMonthUsd, etaText, setPlansFromOnboarding } from '../data/plans.js'
 import { useReminders, remindsAbout } from '../data/reminders.js'
+import { useRaise, undoRaise } from '../data/raise.js'
 import { DeviceHero } from '../onboarding/Onboarding.jsx'
 import { PRESETS, perMonth, freqText, coinsText } from '../onboarding/plan.js'
 import { CoinStack } from '../components/CoinIcon.jsx'
@@ -23,6 +24,7 @@ const names = (coins, key = 'name') => coins.map((c) => COINS[c][key]).join(', '
 export default function Home({ nav, wallet, purchased, onSwipe, onConnect, onReminders }) {
   const plans = usePlans()
   const reminders = useReminders()
+  const raise = useRaise()
   const userGoal = useGoal()
   const demo = isDemoWallet(wallet)
   const empty = !wallet
@@ -78,6 +80,17 @@ export default function Home({ nav, wallet, purchased, onSwipe, onConnect, onRem
             </span>
           )}
         </header>
+
+        {raise.pending && (
+          <div className="card drop raise-note">
+            <span className="drop__nest"><KopitronFace emotion="joy" size={28} /></span>
+            <span className="drop__text">
+              <strong>Теперь по&nbsp;${raise.pending.to}</strong>
+              <span>Было ${raise.pending.from}</span>
+            </span>
+            <button type="button" className="raise-note__undo" onClick={() => { haptic.tick(); undoRaise(plans) }}>Вернуть</button>
+          </div>
+        )}
 
         {showDrop && (
           <button type="button" className="card drop" onClick={() => { haptic.tick(); setWhy(true) }}>

@@ -3,11 +3,12 @@ import { useWallet } from './wallet.js'
 import Onboarding from './onboarding/Onboarding.jsx'
 import TabBar from './components/TabBar.jsx'
 import Home from './screens/Home.jsx'
+import { recordPurchase, shouldOffer, raiseOptions, acceptRaise, useRaise } from './data/raise.js'
 import { History, PurchaseDetails } from './screens/History.jsx'
 import Coin from './screens/Coin.jsx'
 import { Goals, PlanEdit, NewPlan, RemindersSheet } from './screens/Goals.jsx'
 import { Profile, WalletScreen, ChoiceSheet, Dca, Support, About, Legal } from './screens/Profile.jsx'
-import { SignSheet, LowBalanceSheet, Waiting, Success, SetGoal, Cancelled, SignPending, Quoting, fmtCoin } from './screens/Purchase.jsx'
+import { SignSheet, LowBalanceSheet, Waiting, Success, SetGoal, RaiseOffer, Cancelled, SignPending, Quoting, fmtCoin } from './screens/Purchase.jsx'
 import { useTonConnectUI } from '@tonconnect/ui-react'
 import { usePortfolio } from './api/tonapi.js'
 import { preparePurchase, executePurchase } from './api/omniston.js'
@@ -124,6 +125,15 @@ function Main({ plan }) {
     }
   }
 
+  // планы этой покупки: для серии и предложения «+$5». В демо без планов берём пример из макета
+  const boughtPlans = (() => {
+    const coins = buy.coins?.length ? buy.coins : myPlans.map((p) => p.coin)
+    const list = myPlans.filter((p) => coins.includes(p.coin))
+    return list.length ? list : real ? [] : [{ coin: 'btc', amount: amount, freq: 'week', day: 4, paused: false }]
+  })()
+  const raise = useRaise()
+  useEffect(() => { if (flow === 'success') recordPurchase(boughtPlans) }, [flow]) // eslint-disable-line react-hooks/exhaustive-deps
+
   const finishPurchase = () => {
     setFlow(null)
     setPurchased(true)
@@ -178,8 +188,20 @@ function Main({ plan }) {
               store.set('kopitron.firstPurchase', '1')
               if (getGoal()) finishPurchase()
               else setFlow('setgoal')
-            } else finishPurchase()
+            } else if (shouldOffer(boughtPlans)) setFlow('raise')
+            else finishPurchase()
           }}
+        />
+      </div>
+    )
+  if (flow === 'raise')
+    return (
+      <div className="app">
+        <RaiseOffer
+          streak={Math.max(raise.streak, 4)}
+          options={raiseOptions(boughtPlans)}
+          onAccept={(o) => { if (real || myPlans.length) acceptRaise(boughtPlans, o); finishPurchase() }}
+          onSkip={finishPurchase}
         />
       </div>
     )
