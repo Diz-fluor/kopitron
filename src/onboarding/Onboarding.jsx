@@ -12,6 +12,7 @@ import {
   PRESETS, FREQS, DAYS, coinNames, coinsText, perMonth, freqText, dayEach, dayNearest, dayText, firstPurchaseDate, shares,
 } from './plan.js'
 import './Onboarding.css'
+import Sheet from '../components/Sheet.jsx'
 
 // Шаги онбординга. «Свой план» — ветка от шага «План», в метке остаётся 03.
 const STEPS = ['hello', 'distance', 'plan', 'wallet', 'done']
@@ -538,13 +539,10 @@ function Wallet({ go, setWallet }) {
       </p>
 
       {legal && (
-        <div className="sheet-backdrop" onClick={() => setLegal(null)}>
-          <div className="sheet legal-sheet" onClick={(e) => e.stopPropagation()}>
-            <div className="sheet__grip" />
-            <LegalBody doc={legal} />
-            <MainButton variant="dark" arrow={false} center onClick={() => setLegal(null)}>Понятно</MainButton>
-          </div>
-        </div>
+        <Sheet className="legal-sheet" onClose={() => setLegal(null)}>
+          <LegalBody doc={legal} />
+          <MainButton variant="dark" arrow={false} center onClick={() => setLegal(null)}>Понятно</MainButton>
+        </Sheet>
       )}
 
       <Foot>

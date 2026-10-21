@@ -6,6 +6,7 @@ import { haptic } from '../telegram.js'
 import { shortAddress } from '../wallet.js'
 import { COINS, GOAL, NEXT_PURCHASE, money } from '../data/mock.js'
 import './Purchase.css'
+import Sheet from '../components/Sheet.jsx'
 
 // Сценарий покупки: подпись в кошельке → ждём подтверждения → успех → (первый раз) поставим цель.
 // Пока без Omniston: подпись имитируем шторкой, как её показывает кошелёк.
@@ -25,24 +26,21 @@ function Hero({ emotion, color, title, children }) {
 /* Шторка «Подтвердите транзакцию» (так её рисует кошелёк) */
 export function SignSheet({ amount = 10, onConfirm, onCancel }) {
   return (
-    <div className="sheet-backdrop" onClick={onCancel}>
-      <div className="sheet sheet--wallet" onClick={(e) => e.stopPropagation()}>
-        <div className="sheet__grip" />
-        <h2 className="wallet-sheet__title">Подтвердите транзакцию</h2>
-        <p className="wallet-sheet__from">Запрос от Kopitron</p>
-        <dl className="wallet-sheet__table">
-          <div><dt>Отправляете</dt><dd>{amount} USDT</dd></div>
-          <div><dt>Получите</dt><dd className="accent">≈ {RECEIVE} BTC</dd></div>
-          <div><dt>Курс</dt><dd>1 BTC ≈ $67 400</dd></div>
-          <div><dt>Комиссия Kopitron 0,25%</dt><dd>≈ $0,03</dd></div>
-          <div><dt>Комиссия сети</dt><dd>≈ $0,04</dd></div>
-        </dl>
-        <div className="wallet-sheet__actions">
-          <button type="button" className="wallet-btn" onClick={onCancel}>Отмена</button>
-          <button type="button" className="wallet-btn wallet-btn--primary" onClick={onConfirm}>Подтвердить</button>
-        </div>
+    <Sheet className="sheet--wallet" onClose={onCancel}>
+      <h2 className="wallet-sheet__title">Подтвердите транзакцию</h2>
+      <p className="wallet-sheet__from">Запрос от Kopitron</p>
+      <dl className="wallet-sheet__table">
+        <div><dt>Отправляете</dt><dd>{amount} USDT</dd></div>
+        <div><dt>Получите</dt><dd className="accent">≈ {RECEIVE} BTC</dd></div>
+        <div><dt>Курс</dt><dd>1 BTC ≈ $67 400</dd></div>
+        <div><dt>Комиссия Kopitron 0,25%</dt><dd>≈ $0,03</dd></div>
+        <div><dt>Комиссия сети</dt><dd>≈ $0,04</dd></div>
+      </dl>
+      <div className="wallet-sheet__actions">
+        <button type="button" className="wallet-btn" onClick={onCancel}>Отмена</button>
+        <button type="button" className="wallet-btn wallet-btn--primary" onClick={onConfirm}>Подтвердить</button>
       </div>
-    </div>
+    </Sheet>
   )
 }
 
@@ -61,31 +59,28 @@ function openWallet(wallet) {
 export function LowBalanceSheet({ amount = 10, balance = 4, gas, onClose, onBuyAvailable }) {
   const [step, setStep] = useState('low')
   return (
-    <div className="sheet-backdrop" onClick={onClose}>
-      <div className="sheet low" onClick={(e) => e.stopPropagation()}>
-        <div className="sheet__grip" />
-        {step === 'guide' ? (
-          <TopUpGuide amount={amount} gas={gas} onBack={() => setStep('low')} />
-        ) : (
-          <>
-            <div className="low__face"><KopitronFace emotion="sad" size={56} color="var(--color-accent)" /></div>
-            <h2 className="low__title">{gas ? 'Не хватает Gram на сеть' : 'Не хватает USDT'}</h2>
-            <p className="sheet__text low__text">
-              {gas
-                ? 'Для обмена нужно около 0,3 Gram на комиссию сети. Пополни кошелёк на пару Gram и попробуй снова.'
-                : `В кошельке ${balance} USDT, а для покупки нужно ${amount}. Пополни кошелёк или купи на ту сумму, что есть.`}
-            </p>
-            <div className="low__actions">
-              <MainButton variant="dark" onClick={() => { haptic.tick(); setStep('guide') }}>Пополнить кошелёк</MainButton>
-              {!gas && balance >= 1 && (
-                <MainButton variant="dark" arrow={false} center onClick={onBuyAvailable ?? onClose}>Купить на ${balance}</MainButton>
-              )}
-              <button type="button" className="low__skip" onClick={onClose}>Пропустить эту покупку</button>
-            </div>
-          </>
-        )}
-      </div>
-    </div>
+    <Sheet className="low" onClose={onClose}>
+      {step === 'guide' ? (
+        <TopUpGuide amount={amount} gas={gas} onBack={() => setStep('low')} />
+      ) : (
+        <>
+          <div className="low__face"><KopitronFace emotion="sad" size={56} color="var(--color-accent)" /></div>
+          <h2 className="low__title">{gas ? 'Не хватает Gram на сеть' : 'Не хватает USDT'}</h2>
+          <p className="sheet__text low__text">
+            {gas
+              ? 'Для обмена нужно около 0,3 Gram на комиссию сети. Пополни кошелёк на пару Gram и попробуй снова.'
+              : `В кошельке ${balance} USDT, а для покупки нужно ${amount}. Пополни кошелёк или купи на ту сумму, что есть.`}
+          </p>
+          <div className="low__actions">
+            <MainButton variant="dark" onClick={() => { haptic.tick(); setStep('guide') }}>Пополнить кошелёк</MainButton>
+            {!gas && balance >= 1 && (
+              <MainButton variant="dark" arrow={false} center onClick={onBuyAvailable ?? onClose}>Купить на ${balance}</MainButton>
+            )}
+            <button type="button" className="low__skip" onClick={onClose}>Пропустить эту покупку</button>
+          </div>
+        </>
+      )}
+    </Sheet>
   )
 }
 

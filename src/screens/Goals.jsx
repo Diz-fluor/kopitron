@@ -35,6 +35,7 @@ function useLivePlans() {
   return { demo, plans, total }
 }
 import './Goals.css'
+import Sheet from '../components/Sheet.jsx'
 
 export const PLANS = [
   { coin: 'btc', amount: 10, freq: 'week', day: 4, title: '$10 каждую пятницу', goal: '0,01 BTC', saved: '0,0047 BTC', pct: 47, eta: 'к маю 2027', when: 'пт, 09:00' },
@@ -256,32 +257,29 @@ export function RemindersSheet({ onClose }) {
   const [all, setAll] = useState(true)
   const [each, setEach] = useState({ btc: true, eth: true, gram: true })
   return (
-    <div className="sheet-backdrop" onClick={onClose}>
-      <div className="sheet" onClick={(e) => e.stopPropagation()}>
-        <div className="sheet__grip" />
-        <h2 className="sheet__title">Напоминания</h2>
-        <p className="sheet__text">Kopitron пришлёт сообщение в день покупки. Покупку ты подтверждаешь сам, в один свайп.</p>
-        <div className="toggle-card">
-          <strong>Напоминать о покупках</strong>
-          <Toggle on={all} onChange={setAll} />
-        </div>
-        <span className="label section-label">По планам</span>
-        <div className={`reminders ${all ? '' : 'is-off'}`}>
-          {plans.length === 0 && <p className="muted empty-note">Планов пока нет</p>}
-          {plans.map((p) => (
-            <div key={p.coin} className="reminders__row">
-              <CoinIcon coin={p.coin} size={36} />
-              <span className="row__main">
-                <span className="row__title row__title--sm">{COINS[p.coin].name}</span>
-                <span className="row__sub">{p.when}</span>
-              </span>
-              <Toggle on={all && each[p.coin]} onChange={(v) => setEach({ ...each, [p.coin]: v })} />
-            </div>
-          ))}
-        </div>
-        <div className="reminders__time"><span>Время напоминания</span><strong>09:00 ›</strong></div>
-        <MainButton onClick={onClose}>Готово</MainButton>
+    <Sheet onClose={onClose}>
+      <h2 className="sheet__title">Напоминания</h2>
+      <p className="sheet__text">Kopitron пришлёт сообщение в день покупки. Покупку ты подтверждаешь сам, в один свайп.</p>
+      <div className="toggle-card">
+        <strong>Напоминать о покупках</strong>
+        <Toggle on={all} onChange={setAll} />
       </div>
-    </div>
+      <span className="label section-label">По планам</span>
+      <div className={`reminders ${all ? '' : 'is-off'}`}>
+        {plans.length === 0 && <p className="muted empty-note">Планов пока нет</p>}
+        {plans.map((p) => (
+          <div key={p.coin} className="reminders__row">
+            <CoinIcon coin={p.coin} size={36} />
+            <span className="row__main">
+              <span className="row__title row__title--sm">{COINS[p.coin].name}</span>
+              <span className="row__sub">{p.when}</span>
+            </span>
+            <Toggle on={all && each[p.coin]} onChange={(v) => setEach({ ...each, [p.coin]: v })} />
+          </div>
+        ))}
+      </div>
+      <div className="reminders__time"><span>Время напоминания</span><strong>09:00 ›</strong></div>
+      <MainButton onClick={onClose}>Готово</MainButton>
+    </Sheet>
   )
 }

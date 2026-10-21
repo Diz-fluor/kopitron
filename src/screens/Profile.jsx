@@ -9,6 +9,7 @@ import { shortAddress, useWallet, isDemoWallet } from '../wallet.js'
 import { usePortfolio, fmtAmount } from '../api/tonapi.js'
 import { haptic } from '../telegram.js'
 import './Profile.css'
+import Sheet from '../components/Sheet.jsx'
 
 const plural = (n) => (n % 10 === 1 && n % 100 !== 11 ? 'покупку' : [2, 3, 4].includes(n % 10) && ![12, 13, 14].includes(n % 100) ? 'покупки' : 'покупок')
 
@@ -166,31 +167,28 @@ export function WalletScreen({ nav }) {
 /* Шторка выбора: валюта и язык */
 export function ChoiceSheet({ title, text, options, value, onPick, onClose }) {
   return (
-    <div className="sheet-backdrop" onClick={onClose}>
-      <div className="sheet" onClick={(e) => e.stopPropagation()}>
-        <div className="sheet__grip" />
-        <h2 className="sheet__title">{title}</h2>
-        {text && <p className="sheet__text">{text}</p>}
-        <div className="choice">
-          {options.map(([id, label, hint]) => (
-            <button
-              key={id}
-              type="button"
-              className="choice__row"
-              onClick={() => {
-                haptic.tick()
-                onPick(id)
-                setTimeout(onClose, 180)
-              }}
-            >
-              <span>{label}</span>
-              <span className="muted num choice__hint">{hint}</span>
-              <Diode on={value === id} />
-            </button>
-          ))}
-        </div>
+    <Sheet onClose={onClose}>
+      <h2 className="sheet__title">{title}</h2>
+      {text && <p className="sheet__text">{text}</p>}
+      <div className="choice">
+        {options.map(([id, label, hint]) => (
+          <button
+            key={id}
+            type="button"
+            className="choice__row"
+            onClick={() => {
+              haptic.tick()
+              onPick(id)
+              setTimeout(onClose, 180)
+            }}
+          >
+            <span>{label}</span>
+            <span className="muted num choice__hint">{hint}</span>
+            <Diode on={value === id} />
+          </button>
+        ))}
       </div>
-    </div>
+    </Sheet>
   )
 }
 

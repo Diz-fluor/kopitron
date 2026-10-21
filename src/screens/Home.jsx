@@ -7,13 +7,14 @@ import CoinIcon from '../components/CoinIcon.jsx'
 import { DotNumber } from '../components/DotGrid.jsx'
 import { COINS, PORTFOLIO, NEXT_PURCHASE, GOAL, money, pct } from '../data/mock.js'
 import { usePortfolio, fmtAmount } from '../api/tonapi.js'
-import { usePlans, planShort, nextPurchase, useGoal, perMonthUsd, etaText, setPlansFromOnboarding, savePlan } from '../data/plans.js'
+import { usePlans, planShort, nextPurchase, useGoal, perMonthUsd, etaText, setPlansFromOnboarding } from '../data/plans.js'
 import { DeviceHero } from '../onboarding/Onboarding.jsx'
 import { PRESETS, perMonth, freqText, coinsText } from '../onboarding/plan.js'
 import { CoinStack } from '../components/CoinIcon.jsx'
 import { haptic } from '../telegram.js'
 import { isDemoWallet } from '../wallet.js'
 import './Home.css'
+import Sheet from '../components/Sheet.jsx'
 
 const names = (coins, key = 'name') => coins.map((c) => COINS[c][key]).join(', ').replace(/, ([^,]*)$/, ' и $1')
 
@@ -55,6 +56,8 @@ export default function Home({ nav, wallet, purchased, onSwipe, onConnect }) {
 
   const drop = useMarketDrop(plans, demo, live.data)
   const [why, setWhy] = useState(false)
+  const [, rerender] = useState(0)
+  const showDrop = drop && !dropSeen(drop)
 
   // кошелёк есть, а планов нет: копилка ждёт первый план
   if (!demo && !empty && !plans.length) return <EmptyHome nav={nav} />
@@ -72,7 +75,7 @@ export default function Home({ nav, wallet, purchased, onSwipe, onConnect }) {
           )}
         </header>
 
-        {drop && (
+        {showDrop && (
           <button type="button" className="card drop" onClick={() => { haptic.tick(); setWhy(true) }}>
             <span className="drop__nest"><KopitronFace emotion="attention" size={28} /></span>
             <span className="drop__text">
@@ -150,13 +153,7 @@ export default function Home({ nav, wallet, purchased, onSwipe, onConnect }) {
       {why && drop && (
         <WhyDropSheet
           drop={drop}
-          onClose={() => setWhy(false)}
-          onPause={() => {
-            const plan = plans.find((p) => p.coin === drop.coin)
-            if (plan) savePlan({ ...plan, paused: true })
-            haptic.success()
-            setWhy(false)
-          }}
+          onClose={() => { markDropSeen(drop); setWhy(false); rerender((n) => n + 1) }}
         />
       )}
 
@@ -217,11 +214,35 @@ function EmptyHome({ nav }) {
 /* Просадка рынка: курс монеты ниже твоей средней цены покупки больше чем на 10%.
    В демо и по ?drop — пример из макета. */
 const DROP_LIMIT = -0.1
+const DROP_STEP = 10 // п.п.: плашка вернётся, если падение углубится ещё на столько
+const DROP_KEY = 'kopitron.dropSeen'
+let demoSeen = {} // для ?drop помним только до перезагрузки, чтобы пример можно было смотреть снова
+
+const readSeen = (demo) => {
+  if (demo) return demoSeen
+  try { return JSON.parse(localStorage.getItem(DROP_KEY)) ?? {} } catch { return {} }
+}
+const writeSeen = (demo, v) => {
+  if (demo) { demoSeen = v; return }
+  try { localStorage.setItem(DROP_KEY, JSON.stringify(v)) } catch { /* без хранилища плашка просто покажется снова */ }
+}
+
+/* Плашку видели: прячем, пока падение не углубится на DROP_STEP или цена не восстановится и не упадёт заново */
+function dropSeen(drop) {
+  const seen = readSeen(drop.demo)[drop.coin]
+  return seen != null && drop.pct < seen + DROP_STEP
+}
+function markDropSeen(drop) {
+  writeSeen(drop.demo, { ...readSeen(drop.demo), [drop.coin]: drop.pct })
+}
+
 function useMarketDrop(plans, demo, data) {
   const { items } = useLiveHistory()
-  if (new URLSearchParams(window.location.search).has('drop')) return { coin: 'btc', pct: 12, avg: 68200, now: 60100 }
+  if (new URLSearchParams(window.location.search).has('drop')) return { coin: 'btc', pct: 12, avg: 68200, now: 60100, demo: true }
   if (demo || !data) return null
   let worst = null
+  const seen = readSeen(false)
+  let cleared = false
   for (const p of plans) {
     const buys = items.filter((x) => x.coin === p.coin && !x.pending && x.amount > 0)
     const spent = buys.reduce((s, b) => s + b.usd, 0)
@@ -230,13 +251,16 @@ function useMarketDrop(plans, demo, data) {
     if (!got || !now) continue
     const avg = spent / got
     const d = (now - avg) / avg
+    // цена восстановилась: следующее падение покажем заново
+    if (d > DROP_LIMIT && seen[p.coin] != null) { delete seen[p.coin]; cleared = true }
     if (d <= DROP_LIMIT && (!worst || d < worst.d)) worst = { coin: p.coin, d, pct: Math.round(-d * 100), avg, now }
   }
+  if (cleared) writeSeen(false, seen)
   return worst
 }
 
 /* Шторка «Почему цена падает»: факты без обещаний, решение за пользователем */
-function WhyDropSheet({ drop, onClose, onPause }) {
+function WhyDropSheet({ drop, onClose }) {
   const c = COINS[drop.coin]
   const facts = [
     ['01', 'Крипта волатильна', 'Падения на\u00a020–30% бывают регулярно'],
@@ -244,31 +268,28 @@ function WhyDropSheet({ drop, onClose, onPause }) {
     ['03', 'На падении больше монет', `За\u00a0те\u00a0же деньги выходит больше ${c.gen}`],
   ]
   return (
-    <div className="sheet-backdrop" onClick={onClose}>
-      <div className="sheet low" onClick={(e) => e.stopPropagation()}>
-        <div className="sheet__grip" />
-        <div className="low__face"><KopitronFace emotion="attention" size={52} /></div>
-        <h2 className="low__title">Почему цена падает</h2>
-        <p className="sheet__text topup__lead">Это нормально для крипты.<br />Решение за&nbsp;тобой</p>
-        <ol className="topup__steps">
-          {facts.map(([n, title, sub]) => (
-            <li key={n} className="topup__step">
-              <span className="topup__num mono-label">{n}</span>
-              <span className="topup__body"><strong>{title}</strong><span>{sub}</span></span>
-            </li>
-          ))}
-        </ol>
-        <div className="drop__prices">
-          <span><span className="mono-label">Твоя средняя цена</span><b className="num">{money(drop.avg)}</b></span>
-          <i />
-          <span><span className="mono-label">{c.name} сейчас</span><b className="num">{money(drop.now)}</b></span>
-        </div>
-        <p className="drop__note">Это не прогноз. Цена может падать и&nbsp;дальше</p>
-        <div className="low__actions">
-          <MainButton onClick={onClose}>Продолжить план</MainButton>
-          <button type="button" className="low__skip" onClick={onPause}>Поставить на&nbsp;паузу</button>
-        </div>
+    <Sheet className="low" onClose={onClose}>
+      <div className="low__face"><KopitronFace emotion="attention" size={52} /></div>
+      <h2 className="low__title">Почему цена падает</h2>
+      <p className="sheet__text topup__lead">Это нормально для крипты.<br />Решение за&nbsp;тобой</p>
+      <ol className="topup__steps">
+        {facts.map(([n, title, sub]) => (
+          <li key={n} className="topup__step">
+            <span className="topup__num mono-label">{n}</span>
+            <span className="topup__body"><strong>{title}</strong><span>{sub}</span></span>
+          </li>
+        ))}
+      </ol>
+      <div className="drop__prices">
+        <span><span className="mono-label">Твоя средняя цена</span><b className="num">{money(drop.avg)}</b></span>
+        <i />
+        <span><span className="mono-label">{c.name} сейчас</span><b className="num">{money(drop.now)}</b></span>
       </div>
-    </div>
+      <p className="drop__note">Это не прогноз. Цена может падать и&nbsp;дальше</p>
+      <div className="low__actions">
+        <MainButton onClick={onClose}>Продолжить план</MainButton>
+        <p className="drop__pause">Паузу можно поставить в&nbsp;настройках плана</p>
+      </div>
+    </Sheet>
   )
 }
