@@ -24,7 +24,7 @@ const openApp = (env, label, screen) => ({
 async function sendWelcome(env, chatId) {
   return api(env, 'sendPhoto', {
     chat_id: chatId,
-    photo: `${env.ASSETS_URL}welcome.jpg`,
+    photo: `${env.ASSETS_URL}welcome.jpg?v=2`, // версия в адресе: Telegram кэширует фото по ссылке
     parse_mode: 'HTML',
     caption: [
       '<b>Привет, я Kopitron</b>',
