@@ -26,13 +26,18 @@ async function sendWelcome(env, chatId) {
     chat_id: chatId,
     photo: `${env.ASSETS_URL}welcome.jpg?v=3`, // версия в адресе: Telegram кэширует фото по ссылке
     parse_mode: 'HTML',
+    // ручные переносы ровными строками, неразрывные пробелы после коротких слов: без висячих предлогов
     caption: [
-      '<b>Привет, я Kopitron, твоя криптокопилка</b>',
+      '<b>Привет, я\u00a0Kopitron,</b>',
+      '<b>твоя криптокопилка</b>',
       '',
-      'Копить в крипте так же просто, как откладывать в копилку.',
-      'Раз в неделю напомню, тебе останется сдвинуть ползунок.',
+      'Копить в\u00a0крипте так\u00a0же просто,',
+      'как откладывать в\u00a0копилку.',
+      'Раз в\u00a0неделю напомню,',
+      'останется сдвинуть ползунок.',
       '',
-      'Монеты хранятся в твоём кошельке, не у нас.',
+      'Монеты хранятся',
+      'в\u00a0твоём кошельке, не\u00a0у\u00a0нас.',
     ].join('\n'),
     reply_markup: { inline_keyboard: [[openApp(env, 'Открыть Kopitron')]] },
   })
@@ -53,7 +58,7 @@ function reminderCaption(plan = SAMPLE_PLAN) {
   const lines = ['<b>Пора пополнить копилку</b>', `<code>$${fmtMoney(plan.amount)} → ${plan.coin}</code>`]
   if (plan.goal) {
     const pct = Math.round((plan.saved / plan.goal) * 100)
-    lines.push(`Цель <code>$${fmtMoney(plan.goal)}</code>, собрано ${pct}%`, `<code>${goalBar(plan.saved, plan.goal)}</code>`)
+    lines.push(`Цель <code>$${fmtMoney(plan.goal)}</code>, собрано\u00a0${pct}%`, `<code>${goalBar(plan.saved, plan.goal)}</code>`)
   }
   return lines.join('\n')
 }
@@ -97,7 +102,7 @@ async function handleUpdate(env, update) {
     await api(env, 'sendMessage', {
       chat_id: cb.message.chat.id,
       parse_mode: 'HTML',
-      text: '<b>Хорошо, напомню завтра в 09:00</b>\nПропустить день не страшно: DCA работает на длинной дистанции.',
+      text: '<b>Хорошо, напомню завтра в\u00a009:00</b>\nПропустить день не\u00a0страшно:\nDCA работает на\u00a0длинной дистанции.',
     })
     // убираем кнопку «Напомнить завтра», оставляем «Положить»
     const keep = cb.message?.reply_markup?.inline_keyboard?.[0]
