@@ -1,0 +1,34 @@
+// Настройки напоминаний: общий выключатель, монеты без напоминаний и время.
+// Пока храним в браузере, потом переедут в базу на Cloudflare вместе с планами,
+// чтобы бот присылал сообщения по этим настройкам.
+import { useSyncExternalStore } from 'react'
+
+const KEY = 'kopitron.reminders'
+const DEFAULT = { on: true, off: [], time: '09:00' }
+const listeners = new Set()
+
+const read = () => {
+  try { return { ...DEFAULT, ...JSON.parse(localStorage.getItem(KEY) || '{}') } } catch { return DEFAULT }
+}
+
+let state = read()
+
+const write = (next) => {
+  state = next
+  try { localStorage.setItem(KEY, JSON.stringify(next)) } catch { /* без хранилища живём в памяти */ }
+  listeners.forEach((l) => l())
+}
+
+export const setRemindersOn = (on) => write({ ...state, on })
+export const setCoinReminder = (coin, on) => write({ ...state, off: on ? state.off.filter((c) => c !== coin) : [...new Set([...state.off, coin])] })
+export const setReminderTime = (time) => write({ ...state, time })
+
+/* Напоминание по монете включено: общий выключатель и сама монета */
+export const remindsAbout = (s, coin) => s.on && !s.off.includes(coin)
+
+export function useReminders() {
+  return useSyncExternalStore(
+    (l) => { listeners.add(l); return () => listeners.delete(l) },
+    () => state,
+  )
+}

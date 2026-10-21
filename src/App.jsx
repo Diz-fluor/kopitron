@@ -74,7 +74,7 @@ function Main({ plan }) {
   const [flow, setFlow] = useState(null) // waiting | success | setgoal | cancelled
   const [purchased, setPurchased] = useState(false)
   const [firstDone, setFirstDone] = useState(() => store.get('kopitron.firstPurchase') === '1')
-  const [settings, setSettings] = useState({ currency: 'USD', lang: 'ru', notify: true })
+  const [settings, setSettings] = useState({ currency: 'USD', lang: 'ru' })
 
   const nav = {
     push: (name, p = {}) => { setDir('forward'); setStack((s) => [...s, { name, p }]) },
@@ -210,6 +210,7 @@ function Main({ plan }) {
             plan={plan}
             purchased={purchased}
             onConnect={() => nav.push('wallet')}
+            onReminders={() => setSheet('reminders')}
             onSwipe={(next) => (real ? startPurchase(next.amount, next.coins) : setSheet(params.get('demo') === 'low' ? 'low' : 'sign'))}
           />
         ) : tab === 'history' ? (

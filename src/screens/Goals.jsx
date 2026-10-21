@@ -36,6 +36,7 @@ function useLivePlans() {
 }
 import './Goals.css'
 import Sheet from '../components/Sheet.jsx'
+import { useReminders, setRemindersOn, setCoinReminder, setReminderTime, remindsAbout } from '../data/reminders.js'
 
 export const PLANS = [
   { coin: 'btc', amount: 10, freq: 'week', day: 4, title: '$10 каждую пятницу', goal: '0,01 BTC', saved: '0,0047 BTC', pct: 47, eta: 'к маю 2027', when: 'пт, 09:00' },
@@ -251,34 +252,37 @@ export function Toggle({ on, onChange }) {
   )
 }
 
-/* Шторка «Напоминания» */
+/* Шторка «Напоминания»: настройки общие для Главной и Профиля */
 export function RemindersSheet({ onClose }) {
   const { plans } = useLivePlans()
-  const [all, setAll] = useState(true)
-  const [each, setEach] = useState({ btc: true, eth: true, gram: true })
+  const r = useReminders()
   return (
     <Sheet onClose={onClose}>
       <h2 className="sheet__title">Напоминания</h2>
-      <p className="sheet__text">Kopitron пришлёт сообщение в день покупки. Покупку ты подтверждаешь сам, в один свайп.</p>
+      <p className="sheet__text">Kopitron пришлёт сообщение в&nbsp;день покупки. Покупку ты подтверждаешь сам, в&nbsp;один свайп.</p>
       <div className="toggle-card">
-        <strong>Напоминать о покупках</strong>
-        <Toggle on={all} onChange={setAll} />
+        <strong>Напоминать о&nbsp;покупках</strong>
+        <Toggle on={r.on} onChange={setRemindersOn} />
       </div>
       <span className="label section-label">По планам</span>
-      <div className={`reminders ${all ? '' : 'is-off'}`}>
+      <div className={`reminders ${r.on ? '' : 'is-off'}`}>
         {plans.length === 0 && <p className="muted empty-note">Планов пока нет</p>}
         {plans.map((p) => (
           <div key={p.coin} className="reminders__row">
             <CoinIcon coin={p.coin} size={36} />
             <span className="row__main">
               <span className="row__title row__title--sm">{COINS[p.coin].name}</span>
-              <span className="row__sub">{p.when}</span>
+              <span className="row__sub">{p.when.replace(/\d{2}:\d{2}$/, r.time)}</span>
             </span>
-            <Toggle on={all && each[p.coin]} onChange={(v) => setEach({ ...each, [p.coin]: v })} />
+            <Toggle on={remindsAbout(r, p.coin)} onChange={(v) => setCoinReminder(p.coin, v)} />
           </div>
         ))}
       </div>
-      <div className="reminders__time"><span>Время напоминания</span><strong>09:00 ›</strong></div>
+      <label className={`reminders__time ${r.on ? '' : 'is-off'}`}>
+        <span>Время напоминания</span>
+        <strong>{r.time} ›</strong>
+        <input type="time" value={r.time} disabled={!r.on} onChange={(e) => e.target.value && setReminderTime(e.target.value)} aria-label="Время напоминания" />
+      </label>
       <MainButton onClick={onClose}>Готово</MainButton>
     </Sheet>
   )

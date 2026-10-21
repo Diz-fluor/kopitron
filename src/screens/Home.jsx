@@ -8,6 +8,7 @@ import { DotNumber } from '../components/DotGrid.jsx'
 import { COINS, PORTFOLIO, NEXT_PURCHASE, GOAL, money, pct } from '../data/mock.js'
 import { usePortfolio, fmtAmount } from '../api/tonapi.js'
 import { usePlans, planShort, nextPurchase, useGoal, perMonthUsd, etaText, setPlansFromOnboarding } from '../data/plans.js'
+import { useReminders, remindsAbout } from '../data/reminders.js'
 import { DeviceHero } from '../onboarding/Onboarding.jsx'
 import { PRESETS, perMonth, freqText, coinsText } from '../onboarding/plan.js'
 import { CoinStack } from '../components/CoinIcon.jsx'
@@ -19,8 +20,9 @@ import Sheet from '../components/Sheet.jsx'
 const names = (coins, key = 'name') => coins.map((c) => COINS[c][key]).join(', ').replace(/, ([^,]*)$/, ' и $1')
 
 // Главная: всё на первом экране, свайп в 16 px над таб-баром
-export default function Home({ nav, wallet, purchased, onSwipe, onConnect }) {
+export default function Home({ nav, wallet, purchased, onSwipe, onConnect, onReminders }) {
   const plans = usePlans()
+  const reminders = useReminders()
   const userGoal = useGoal()
   const demo = isDemoWallet(wallet)
   const empty = !wallet
@@ -49,6 +51,8 @@ export default function Home({ nav, wallet, purchased, onSwipe, onConnect }) {
   const next = demo
     ? { days: NEXT_PURCHASE.days, date: NEXT_PURCHASE.date, amount: 10, coins: ['btc'] }
     : nextPurchase(plans)
+  // чип показывает, напомнит ли бот о ближайшей покупке
+  const remindOn = next ? next.coins.some((c) => remindsAbout(reminders, c)) : reminders.on
   const after = next?.when ? nextPurchase(plans, new Date(+next.when + 86400000)) : null
   const goalTarget = demo ? GOAL.target : userGoal
   const goalSaved = demo ? GOAL.saved : total
@@ -113,7 +117,9 @@ export default function Home({ nav, wallet, purchased, onSwipe, onConnect }) {
           <section className="card card--pad next">
             <div className="next__head">
               <span className="label">Следующая покупка</span>
-              <span className="chip"><i className="chip__dot" />Напоминание</span>
+              <button type="button" className={`chip chip--btn ${remindOn ? '' : 'is-off'}`} onClick={() => { haptic.tick(); onReminders?.() }}>
+                <i className="chip__dot" />{remindOn ? 'Напоминание' : 'Без напоминания'}<span className="chip__chevron">›</span>
+              </button>
             </div>
             <div className="next__body">
               <DotNumber value={purchased && after ? after.days : next.days} />

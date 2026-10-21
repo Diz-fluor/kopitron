@@ -92,6 +92,12 @@
   font-weight: 600;
 }
 .chip__dot { width: 6px; height: 6px; border-radius: 50%; background: var(--color-accent); }
+/* чип-кнопка: точка показывает состояние, шеврон — что можно нажать */
+.chip--btn { border: 0; color: var(--color-text); font-family: inherit; cursor: pointer; }
+.chip--btn:active { opacity: 0.7; }
+.chip--btn.is-off { color: var(--color-text-secondary); }
+.chip--btn.is-off .chip__dot { background: var(--color-text-secondary); }
+.chip__chevron { margin-left: 2px; color: var(--color-text-secondary); }
 
 /* строка списка: иконка, текст, значение справа */
 .list { padding: 6px 0; }

@@ -10,6 +10,7 @@ import { usePortfolio, fmtAmount } from '../api/tonapi.js'
 import { haptic } from '../telegram.js'
 import './Profile.css'
 import Sheet from '../components/Sheet.jsx'
+import { useReminders } from '../data/reminders.js'
 
 const plural = (n) => (n % 10 === 1 && n % 100 !== 11 ? 'покупку' : [2, 3, 4].includes(n % 10) && ![12, 13, 14].includes(n % 100) ? 'покупки' : 'покупок')
 
@@ -40,9 +41,10 @@ export function Profile({ nav, settings, openSheet }) {
   const first = buys.length ? new Date(Math.min(...buys.map((h) => h.time ?? Date.now()))) : null
   const since = demo ? 'копит с 14 сентября, 6 покупок' : !address ? 'кошелёк не подключён' : first ? `копит с ${first.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}, ${buys.length} ${purchasesWord(buys.length)}` : 'первая покупка впереди'
   const user = tgUser()
+  const reminders = useReminders()
   const name = user?.first_name ?? 'Гость'
   const rows = [
-    ['Уведомления', settings.notify ? 'вкл' : 'выкл', () => openSheet('reminders')],
+    ['Напоминания', reminders.on ? reminders.time : 'выкл', () => openSheet('reminders')],
     ['Валюта', settings.currency, () => openSheet('currency')],
     ['Язык', settings.lang === 'ru' ? 'Русский' : 'English', () => openSheet('language')],
     ['Что такое DCA', '', () => nav.push('dca')],
