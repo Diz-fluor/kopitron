@@ -39,7 +39,7 @@ export function Profile({ nav, settings, openSheet }) {
   const first = buys.length ? new Date(Math.min(...buys.map((h) => h.time ?? Date.now()))) : null
   const since = demo ? 'копит с 14 сентября, 6 покупок' : !address ? 'кошелёк не подключён' : first ? `копит с ${first.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}, ${buys.length} ${purchasesWord(buys.length)}` : 'первая покупка впереди'
   const user = tgUser()
-  const name = user?.first_name ?? 'Дмитрий'
+  const name = user?.first_name ?? 'Гость'
   const rows = [
     ['Уведомления', settings.notify ? 'вкл' : 'выкл', () => openSheet('reminders')],
     ['Валюта', settings.currency, () => openSheet('currency')],
@@ -253,7 +253,7 @@ export function Support() {
         </section>
       </div>
       <div className="scr__foot scr__foot--bottom">
-        <MainButton onClick={() => window.Telegram?.WebApp?.openTelegramLink?.('https://t.me/DmitryLu4') ?? window.open('https://t.me/DmitryLu4')}>
+        <MainButton onClick={() => window.Telegram?.WebApp?.openTelegramLink?.('https://t.me/kopitronbot') ?? window.open('https://t.me/kopitronbot')}>
           Написать в поддержку
         </MainButton>
       </div>

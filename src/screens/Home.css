@@ -52,10 +52,12 @@
 
 /* Главная без плана */
 .home--empty { gap: 0; }
-.home__hero.hero { flex: 0 0 auto; height: 152px; min-height: 0; margin: 0 -16px; overflow: visible; pointer-events: none; }
-/* у рендера прозрачные поля сверху и снизу: картинка больше блока, корпус заполняет его по высоте */
-.home__hero .hero__device { width: min(270px, 100cqw); }
-.home__empty-title { margin-top: 12px; }
+/* у рендера прозрачные поля: видимый корпус со шнурком занимает 22–80% высоты картинки.
+   Блок по высоте равен видимой части, картинка прижата вверх и сдвинута на верхнее поле,
+   поэтому рендер не залезает на заголовок */
+.home__hero.hero { --w: min(240px, 100cqw); flex: 0 0 auto; height: calc(var(--w) * 0.6); min-height: 0; margin: 8px -16px 0; container-type: inline-size; display: flex; justify-content: center; align-items: flex-start; overflow: visible; pointer-events: none; }
+.home__hero .hero__device { --w: min(240px, 100cqw); width: var(--w); margin-top: calc(var(--w) * -0.22); flex: 0 0 auto; }
+.home__empty-title { margin-top: 20px; }
 .home__plans { margin-top: 14px; }
 
 /* просадка рынка */
