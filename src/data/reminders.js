@@ -1,6 +1,5 @@
 // Настройки напоминаний: общий выключатель, монеты без напоминаний, время и напоминание накануне.
-// Пока храним в браузере, потом переедут в базу на Cloudflare вместе с планами,
-// чтобы бот присылал сообщения по этим настройкам.
+// Храним в браузере и копию в базе вместе с планами: по ним бот присылает напоминания.
 import { useSyncExternalStore } from 'react'
 
 const KEY = 'kopitron.reminders'
@@ -19,6 +18,7 @@ const write = (next) => {
   listeners.forEach((l) => l())
 }
 
+export const replaceReminders = (r) => write({ ...DEFAULT, ...r })
 export const setRemindersOn = (on) => write({ ...state, on })
 export const setCoinReminder = (coin, on) => write({ ...state, off: on ? state.off.filter((c) => c !== coin) : [...new Set([...state.off, coin])] })
 export const setReminderTime = (time) => write({ ...state, time })

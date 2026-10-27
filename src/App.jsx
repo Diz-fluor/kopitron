@@ -16,6 +16,7 @@ import { isDemoWallet } from './wallet.js'
 import { COINS } from './data/mock.js'
 import { setPlansFromOnboarding, setGoal, useGoal, getGoal, usePlans, nextPurchase } from './data/plans.js'
 import { backButton } from './telegram.js'
+import { useBackendSync, reportPurchase } from './api/backend.js'
 import './styles/ui.css'
 
 const params = new URLSearchParams(window.location.search)
@@ -90,6 +91,7 @@ function Main({ plan }) {
   const [tonConnectUI] = useTonConnectUI()
   const real = wallet && !isDemoWallet(wallet)
   const portfolio = usePortfolio(real ? wallet : null)
+  useBackendSync(real ? wallet : null)
   const goal = useGoal()
   const myPlans = usePlans()
   // сколько уже в копилке: только монеты из планов
@@ -132,7 +134,11 @@ function Main({ plan }) {
     return list.length ? list : real ? [] : [{ coin: 'btc', amount: amount, freq: 'week', day: 4, paused: false }]
   })()
   const raise = useRaise()
-  useEffect(() => { if (flow === 'success') recordPurchase(boughtPlans) }, [flow]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (flow !== 'success') return
+    recordPurchase(boughtPlans)
+    if (real) reportPurchase(buy.quotes.map((q) => ({ coin: q.coin, usd: q.usd })))
+  }, [flow]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const finishPurchase = () => {
     setFlow(null)

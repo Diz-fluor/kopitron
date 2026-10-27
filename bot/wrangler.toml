@@ -7,3 +7,14 @@ compatibility_date = "2026-10-01"
 [vars]
 APP_URL = "https://diz-fluor.github.io/kopitron/"
 ASSETS_URL = "https://diz-fluor.github.io/kopitron/bot/"
+
+# База: пользователи, планы, покупки, журнал напоминаний. Схема — migrations/0001_init.sql
+[[d1_databases]]
+binding = "DB"
+database_name = "kopitron"
+database_id = "8fa0bf3d-6213-48ed-9d49-4e952da47ac8"
+migrations_dir = "migrations"
+
+# Каждые 15 минут проверяем, кому пора напомнить
+[triggers]
+crons = ["*/15 * * * *"]

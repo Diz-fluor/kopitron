@@ -1,5 +1,5 @@
-// Планы пользователя: по одному на монету. Пока храним в браузере (localStorage),
-// потом переедут в базу на Cloudflare, чтобы бот знал, когда напоминать.
+// Планы пользователя: по одному на монету. Храним в браузере (localStorage)
+// и копию в базе на Cloudflare, чтобы бот знал, когда напоминать (api/backend.js).
 import { useSyncExternalStore } from 'react'
 import { DAYS } from '../onboarding/plan.js'
 
@@ -36,6 +36,9 @@ export const DEFAULT_GOALS = { btc: 0.01, eth: 0.1, gram: 100 }
 
 export const setPlansFromOnboarding = (p) => write(fromOnboarding(p))
 export const savePlan = (plan) => write([...plans.filter((x) => x.coin !== plan.coin), plan].sort(byCoin))
+// Планы с сервера (новое устройство)
+export const replacePlans = (list) => write([...list].sort(byCoin))
+export const getPlans = () => plans
 export const deletePlan = (coin) => write(plans.filter((x) => x.coin !== coin))
 
 const ORDER = ['btc', 'eth', 'gram']
