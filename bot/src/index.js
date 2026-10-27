@@ -188,8 +188,9 @@ function cleanPlan(p) {
 }
 
 async function handleApi(request, env, path) {
-  const user = await checkInitData(request.headers.get('x-init-data'), env.BOT_TOKEN)
-  if (!user) return json({ error: 'unauthorized' }, 401)
+  const why = {}
+  const user = await checkInitData(request.headers.get('x-init-data'), env.BOT_TOKEN, why)
+  if (!user) return json({ error: 'unauthorized', reason: why.reason }, 401)
   const id = user.id
 
   if (path === '/api/state' && request.method === 'GET') {
@@ -291,12 +292,19 @@ export default {
     }
 
     if (url.pathname.startsWith('/api/')) {
+      let res, note = ''
       try {
-        return await handleApi(request, env, url.pathname)
+        res = await handleApi(request, env, url.pathname)
+        if (!res.ok) note = (await res.clone().text()).slice(0, 300)
       } catch (e) {
         console.error('api failed', e)
-        return json({ error: 'server error' }, 500)
+        note = String(e?.stack ?? e).slice(0, 300)
+        res = json({ error: 'server error' }, 500)
       }
+      // журнал запросов: пока отлаживаем связку с приложением
+      await env.DB.prepare('INSERT INTO api_log (ts, method, path, status, note) VALUES (?1, ?2, ?3, ?4, ?5)')
+        .bind(Date.now(), request.method, url.pathname + url.search, res.status, note).run().catch(() => {})
+      return res
     }
 
     return new Response('Kopitron bot', { status: 200 })
