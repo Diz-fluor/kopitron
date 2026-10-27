@@ -421,7 +421,7 @@ export function DotIcon({ cells, size = 31, color = 'var(--color-accent)' }) {
 }
 
 // Логотипы кошельков лежат у нас (public/wallets), как в макете Figma 121:5801.
-// «Кошелёк в Telegram» — Wallet (app_name "telegram-wallet" в списке TON Connect).
+// «Walt в Telegram» (раньше Кошелёк) — Wallet (app_name "telegram-wallet" в списке TON Connect).
 const asset = (f) => `${import.meta.env.BASE_URL}wallets/${f}`
 export const TG_WALLET = 'telegram-wallet'
 const TG_WALLET_LOGO = asset('wallet-telegram.svg')
@@ -430,7 +430,7 @@ const TON_LOGO = asset('wallet-ton.svg')
 export function useWalletInfo() {
   const w = useTonWallet()
   const tg = !w || w.appName === TG_WALLET
-  return { name: tg ? 'Кошелёк в Telegram' : w.name ?? 'Кошелёк TON', logo: tg ? TG_WALLET_LOGO : w?.imageUrl ?? null, tg }
+  return { name: tg ? 'Walt в\u00a0Telegram' : w.name ?? 'Кошелёк TON', logo: tg ? TG_WALLET_LOGO : w?.imageUrl ?? null, tg }
 }
 
 export function WalletLogo({ src, kind = 'telegram' }) {
@@ -500,14 +500,14 @@ function Wallet({ go, setWallet }) {
 
   return (
     <>
-      <Head title="Кошелёк">Монеты хранятся у тебя, а не у нас</Head>
+      <Head title="Кошелёк">Некастодиальный: монеты хранятся у&nbsp;тебя</Head>
 
       <div className="wallets">
         <button type="button" className={`card wallet ${choice === 'telegram' ? 'is-selected' : ''}`} onClick={() => pick('telegram')}>
           <WalletChoiceIcon kind="telegram" />
           <span className="wallet__text">
-            <span className="wallet__name">Кошелёк в Telegram</span>
-            <span className="wallet__sub wallet__sub--accent">Рекомендуем, уже есть в Telegram</span>
+            <span className="wallet__name">Walt в&nbsp;Telegram</span>
+            <span className="wallet__sub wallet__sub--accent">Рекомендуем. Через DeFi Счёт</span>
           </span>
           <Diode on={choice === 'telegram'} />
         </button>

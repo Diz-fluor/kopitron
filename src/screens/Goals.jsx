@@ -5,7 +5,7 @@ import { COINS, GOAL, money } from '../data/mock.js'
 import { DAYS } from '../onboarding/plan.js'
 import { haptic } from '../telegram.js'
 import { Segments } from './History.jsx'
-import { usePlans, savePlan, deletePlan, planTitle, planWhen, DEFAULT_GOALS, useGoal, perMonthUsd, etaText } from '../data/plans.js'
+import { usePlans, savePlan, deletePlan, planTitle, planWhen, DEFAULT_GOALS, useGoal, perMonthUsd, etaText, ETA_FAR } from '../data/plans.js'
 import { usePortfolio, fmtAmount } from '../api/tonapi.js'
 import { useWallet, isDemoWallet } from '../wallet.js'
 
@@ -68,7 +68,7 @@ export function Goals({ nav }) {
           <button type="button" className="card card--pad goal-total" onClick={() => nav.push('goal')}>
             <div className="goal-total__head">
               <span className="label">Общая цель</span>
-              <span className="muted">{demo ? '≈ июнь 2027' : eta ? `≈ ${eta} ›` : 'Изменить ›'}</span>
+              <span className="muted">{demo ? '≈ июнь 2027' : eta ? `${eta === ETA_FAR ? '' : '≈ '}${eta} ›` : 'Изменить ›'}</span>
             </div>
             <div className="goal-total__row">
               <span>{money(Math.round(total))} из {money(target)}</span>
@@ -169,7 +169,7 @@ export function PlanEdit({ coin = 'btc', nav }) {
         <section className="card card--pad coin-goal">
           <div className="coin-goal__head"><span>Цель по монете</span><span className="muted">{p.goal} ›</span></div>
           <SegBar value={p.pct} />
-          <span className="muted coin-goal__note">Накоплено {p.saved}{p.eta ? `. С этим планом ≈ ${p.eta}` : ''}</span>
+          <span className="muted coin-goal__note">Накоплено {p.saved}{p.eta ? `. С этим планом ${p.eta === ETA_FAR ? '' : '≈ '}${p.eta}` : ''}</span>
         </section>
         <div className="summary">
           <strong>≈ ${perMonth(p.amount, p.freq)} в месяц</strong>

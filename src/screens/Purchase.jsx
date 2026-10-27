@@ -69,7 +69,7 @@ export function LowBalanceSheet({ amount = 10, balance = 4, gas, onClose, onBuyA
           <p className="sheet__text low__text">
             {gas
               ? 'Для обмена нужно около 0,3 Gram на комиссию сети. Пополни кошелёк на пару Gram и попробуй снова.'
-              : `В кошельке ${balance} USDT, а для покупки нужно ${amount}. Пополни кошелёк или купи на ту сумму, что есть.`}
+              : <>В кошельке {balance}{'\u00a0'}USDT, а{'\u00a0'}для покупки нужно {amount}. Пополни кошелёк или купи на{'\u00a0'}ту сумму, что есть.<br />Основной баланс Walt мы{'\u00a0'}не{'\u00a0'}видим, только DeFi Счёт.</>}
           </p>
           <div className="low__actions">
             <MainButton variant="dark" onClick={() => { haptic.tick(); setStep('guide') }}>Пополнить кошелёк</MainButton>
@@ -100,8 +100,8 @@ function TopUpGuide({ amount, gas, onBack }) {
   }
 
   const steps = [
-    ['01', 'Открой кошелёк', 'Wallet в\u00a0Telegram или тот, что подключён'],
-    ['02', gas ? 'Купи немного Gram' : 'Купи USDT и\u00a0немного Gram', 'Картой или через P2P прямо в\u00a0кошельке. Сеть только TON'],
+    ['01', 'Открой DeFi Счёт в\u00a0Walt', 'Или другой кошелёк, который подключён'],
+    ['02', gas ? 'Купи немного Gram' : 'Купи USDT и\u00a0немного Gram', 'Переведи с\u00a0основного баланса Walt или купи картой. Сеть только TON'],
     ['03', 'Вернись и сдвинь свайп', 'Баланс обновится сам, обычно за\u00a0минуту'],
   ]
 

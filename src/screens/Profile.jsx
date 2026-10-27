@@ -113,7 +113,7 @@ export function WalletScreen({ nav }) {
           <p className="lead">Не подключён. Подключение займёт 10 секунд.</p>
           <div className="wallets">
             {[
-              ['telegram', 'Кошелёк в Telegram', 'Рекомендуем, уже есть в Telegram'],
+              ['telegram', 'Walt в\u00a0Telegram', 'Рекомендуем. Через DeFi Счёт'],
               ['other', 'Другой кошелёк TON', 'Tonkeeper, MyTonWallet и другие'],
             ].map(([id, t, sub]) => (
               <button key={id} type="button" className={`card wallet ${choice === id ? 'is-selected' : ''}`} onClick={() => { haptic.tick(); setChoice(id) }}>

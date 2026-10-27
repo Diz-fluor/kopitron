@@ -122,11 +122,16 @@ export const getGoal = () => goal
 export const perMonthUsd = (list) =>
   list.filter((p) => !p.paused).reduce((s, p) => s + p.amount * (p.freq === 'month' ? 1 : p.freq === '2weeks' ? 26 / 12 : 52 / 12), 0)
 
+// Цель дальше 10 лет: дату не показываем, она выглядит как ошибка
+export const ETA_FAR = 'больше 10 лет'
+
 export function etaText(left, monthly, from = new Date()) {
   if (left <= 0) return ''
   if (!monthly) return ''
+  const months = Math.ceil(left / monthly)
+  if (months > 120) return ETA_FAR
   const d = new Date(from)
-  d.setMonth(d.getMonth() + Math.ceil(left / monthly))
+  d.setMonth(d.getMonth() + months)
   const month = d.toLocaleDateString('ru-RU', { month: 'long' })
   // «к маю 2027»: дательный падеж месяца
   const dative = { январь: 'январю', февраль: 'февралю', март: 'марту', апрель: 'апрелю', май: 'маю', июнь: 'июню', июль: 'июлю', август: 'августу', сентябрь: 'сентябрю', октябрь: 'октябрю', ноябрь: 'ноябрю', декабрь: 'декабрю' }

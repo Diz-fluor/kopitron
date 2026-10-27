@@ -7,7 +7,7 @@ import CoinIcon from '../components/CoinIcon.jsx'
 import { DotNumber } from '../components/DotGrid.jsx'
 import { COINS, PORTFOLIO, NEXT_PURCHASE, GOAL, money, pct } from '../data/mock.js'
 import { usePortfolio, fmtAmount } from '../api/tonapi.js'
-import { usePlans, planShort, nextPurchase, useGoal, perMonthUsd, etaText, setPlansFromOnboarding } from '../data/plans.js'
+import { usePlans, planShort, nextPurchase, useGoal, perMonthUsd, etaText, ETA_FAR, setPlansFromOnboarding } from '../data/plans.js'
 import { useReminders, remindsAbout } from '../data/reminders.js'
 import { useRaise, undoRaise } from '../data/raise.js'
 import { DeviceHero } from '../onboarding/Onboarding.jsx'
@@ -21,6 +21,12 @@ import Sheet from '../components/Sheet.jsx'
 const names = (coins, key = 'name') => coins.map((c) => COINS[c][key]).join(', ').replace(/, ([^,]*)$/, ' и $1')
 
 // Главная: всё на первом экране, свайп в 16 px над таб-баром
+// «Собрано $1, ≈ к маю 2027» или «Собрано $1. С такой суммой это больше 10 лет»
+function goalLine(saved, eta) {
+  if (eta === ETA_FAR) return `Собрано ${saved}. С\u00a0такой суммой это ${ETA_FAR}`
+  return eta ? `Собрано ${saved}, ≈ ${eta}` : `Собрано ${saved}`
+}
+
 export default function Home({ nav, wallet, purchased, onSwipe, onConnect, onReminders }) {
   const plans = usePlans()
   const reminders = useReminders()
@@ -174,7 +180,7 @@ export default function Home({ nav, wallet, purchased, onSwipe, onConnect, onRem
             <span className="segbar">
               {Array.from({ length: 20 }, (_, i) => <i key={i} className={i < Math.round(goalPct / 5) ? 'is-on' : ''} />)}
             </span>
-            <span className="muted goal__eta">{demo ? `≈ ${GOAL.eta}` : [`Собрано ${money(Math.round(goalSaved))}`, etaText(goalTarget - goalSaved, perMonthUsd(plans))].filter(Boolean).join(', ≈ ').replace('≈ цель', 'цель')}</span>
+            <span className="muted goal__eta">{demo ? `≈ ${GOAL.eta}` : goalLine(money(Math.round(goalSaved)), etaText(goalTarget - goalSaved, perMonthUsd(plans)))}</span>
           </button>
         )}
       </div>
