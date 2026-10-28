@@ -292,19 +292,12 @@ export default {
     }
 
     if (url.pathname.startsWith('/api/')) {
-      let res, note = ''
       try {
-        res = await handleApi(request, env, url.pathname)
-        if (!res.ok) note = (await res.clone().text()).slice(0, 300)
+        return await handleApi(request, env, url.pathname)
       } catch (e) {
         console.error('api failed', e)
-        note = String(e?.stack ?? e).slice(0, 300)
-        res = json({ error: 'server error' }, 500)
+        return json({ error: 'server error' }, 500)
       }
-      // журнал запросов: пока отлаживаем связку с приложением
-      await env.DB.prepare('INSERT INTO api_log (ts, method, path, status, note) VALUES (?1, ?2, ?3, ?4, ?5)')
-        .bind(Date.now(), request.method, url.pathname + url.search, res.status, note).run().catch(() => {})
-      return res
     }
 
     return new Response('Kopitron bot', { status: 200 })

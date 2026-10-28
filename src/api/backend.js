@@ -10,11 +10,7 @@ const initData = () => window.Telegram?.WebApp?.initData || ''
 
 async function call(path, body) {
   const data = initData()
-  if (!data) {
-    // вне Telegram сервер не пустит; один раз отметимся, чтобы видеть это в журнале
-    if (!call.pinged) { call.pinged = true; fetch(`${API}/api/hello?no-initdata`).catch(() => {}) }
-    return null
-  }
+  if (!data) return null
   const res = await fetch(`${API}${path}`, {
     method: body ? 'POST' : 'GET',
     headers: { 'x-init-data': data, ...(body ? { 'content-type': 'application/json' } : {}) },
